@@ -1,0 +1,98 @@
+language: c++
+
+branches:
+  only:
+    - master
+
+dist: trusty
+
+matrix:
+  include:
+    - os: linux
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+          packages:
+            - g++-7
+            - mesa-utils
+            - xorg-dev
+            - libx11-xcb-dev
+            - libxkbcommon-dev
+            - libmirclient-dev
+            - libwayland-dev
+            - libxrandr-dev
+#            - lcov
+      env:
+        - MATRIX_EVAL="CC=gcc-7 && CXX=g++-7"
+
+before_install:
+  - eval "${MATRIX_EVAL}"
+
+install:
+  ############################################################################
+  # All compiled dependencies are installed in ${TRAVIS_BUILD_DIR}/deps/
+  ############################################################################
+  - DEPS_DIR="${TRAVIS_BUILD_DIR}/deps"
+  - mkdir -p ${DEPS_DIR}
+
+  ############################################################################
+  # Install a recent CMake
+  ############################################################################
+  - |
+    if [[ "${TRAVIS_OS_NAME}" == "linux" ]]; then
+      cd ${DEPS_DIR}
+      CMAKE_URL="https://cmake.org/files/v3.11/cmake-3.11.0-Linux-x86_64.tar.gz"
+      mkdir cmake && travis_retry wget --no-check-certificate --quiet -O - ${CMAKE_URL} | tar --strip-components=1 -xz -C cmake
+      export PATH=${DEPS_DIR}/cmake/bin:${PATH}
+    fi
+  - cmake --version
+
+  ############################################################################
+  # Install the Vulkan SDK
+  ############################################################################
+  - |
+    if [[ "${TRAVIS_OS_NAME}" == "linux" ]]; then
+      cd ${DEPS_DIR}
+      VULKAN_URL="https://vulkan.lunarg.com/sdk/download/1.1.73.0/linux/vulkansdk-linux-x86_64-1.1.73.0.run"
+      travis_retry wget --no-check-certificate --quiet -O vulkansdk-linux-x86_64-1.1.73.0.run ${VULKAN_URL}
+      sh vulkansdk-linux-x86_64-1.1.73.0.run
+      export VULKAN_SDK=${DEPS_DIR}/VulkanSDK/1.1.73.0/x86_64
+    fi
+
+script:
+  ############################################################################
+  # Build project and run CPU based tests
+  ############################################################################
+  - cd ${TRAVIS_BUILD_DIR}
+  - mkdir cmake-build-debug
+  - cd cmake-build-debug
+  - |
+   cmake \
+   -DCMAKE_BUILD_TYPE=Debug \
+   -DGLCV_BUILD_TESTS=ON \
+   -DGLCV_BUILD_EXAMPLES=ON \
+   -DGLCV_USE_DEV_FLAGS=ON \
+   -DGLCV_HEADLESS=ON \
+   ..
+  - make -j
+  - ./example_wire_cube
+
+  - cd ${TRAVIS_BUILD_DIR}
+  - mkdir cmake-build-release
+  - cd cmake-build-release
+  - |
+   cmake \
+   -DCMAKE_BUILD_TYPE=Release \
+   -DGLCV_BUILD_TESTS=ON \
+   -DGLCV_BUILD_EXAMPLES=ON \
+   -DGLCV_USE_DEV_FLAGS=ON \
+   -DGLCV_HEADLESS=ON \
+   ..
+  - make -j
+  - ./example_wire_cube
+
+
+notifications:
+  on_success: never
+  on_failure: always
