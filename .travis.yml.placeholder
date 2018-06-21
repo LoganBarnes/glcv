@@ -1,0 +1,9 @@
+-git
+-cmake
+-build-essential
+-bison
+-libx11-xcb-dev
+-libxkbcommon-dev
+-libmirclient-dev
+-libwayland-dev
+-libxrandr-dev

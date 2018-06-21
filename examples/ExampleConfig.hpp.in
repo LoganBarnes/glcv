@@ -1,0 +1,16 @@
+// ////////////////////////////////////////////////////////////
+// Vulkan Graphics Classes
+// Copyright (c) 2018. All rights reserved.
+// ////////////////////////////////////////////////////////////
+#pragma once
+
+#include <string>
+
+namespace examples {
+
+inline std::string shader_path()
+{
+    return "${CMAKE_SOURCE_DIR}/examples/shaders/";
+}
+
+} // namespace examples
