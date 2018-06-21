@@ -4,7 +4,6 @@
 // ////////////////////////////////////////////////////////////
 #include <glcv/GLCV.hpp>
 #include "loop/SimpleLoop.hpp"
-#include "loop/ExampleConfig.hpp"
 #include <iostream>
 
 class WireCube : public examples::SimpleLoop
@@ -12,13 +11,21 @@ class WireCube : public examples::SimpleLoop
 public:
     WireCube() : examples::SimpleLoop("Wire Cube Example")
     {
-        std::vector<VkExtensionProperties> extensions = GLCV::get_available_extensions();
+        std::vector<VkExtensionProperties> available_ext = GLCV::get_available_extensions();
 
         std::cout << "Available extensions:" << std::endl;
-        for (const auto &extension : extensions) {
-            std::cout << "\t" << extension.extensionName << std::endl;
+        for (const auto &extension : available_ext) {
+            std::cout << '\t' << extension.extensionName << std::endl;
         }
-        GLCV::init("Example");
+
+        std::vector<const char *> required_ext = get_required_glfw_extensions();
+
+        std::cout << "\nRequired extensions:" << std::endl;
+        for (const auto &extension : required_ext) {
+            std::cout << '\t' << extension << std::endl;
+        }
+
+        GLCV::init("Example", required_ext);
     }
 
     void render(int /*view_width*/, int /*view_height*/, float) const final {}

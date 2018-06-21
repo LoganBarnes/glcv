@@ -31,8 +31,7 @@ public:
 
     void run_loop();
 
-    int get_framebuffer_width() const;
-    int get_framebuffer_height() const;
+    std::vector<const char*> get_required_glfw_extensions() const;
 
 protected:
     bool paused_ = true;

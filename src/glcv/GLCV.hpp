@@ -25,8 +25,11 @@ public:
     static std::vector<VkExtensionProperties> get_available_extensions();
 
     // TODO: add extensions input
-    static void init(const std::string &app_name = "GLCV Application");
-    static void create_instance(const std::string &app_name = "GLCV Application");
+    static void init(const std::string &app_name = "GLCV Application",
+                     const std::vector<const char *> &extensions_names = {});
+
+    static void create_instance(const std::string &app_name = "GLCV Application",
+                                const std::vector<const char *> &extensions_names = {});
 
     GLCV(const GLCV &) = delete;
     GLCV(GLCV &&) noexcept = delete;

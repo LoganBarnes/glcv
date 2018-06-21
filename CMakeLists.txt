@@ -12,6 +12,7 @@ option(GLCV_BUILD_TESTS "Build unit tests with GoogleTest and GLFW" OFF)
 option(GLCV_BUILD_EXAMPLES "Build example classes with GLFW" OFF)
 option(GLCV_UPDATE_REPOS "Update thirdparty git repos" OFF)
 option(GLCV_USE_DEV_FLAGS "Compile with all the flags" OFF)
+option(GLCV_HEADLESS "Run examples without a window" OFF)
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 

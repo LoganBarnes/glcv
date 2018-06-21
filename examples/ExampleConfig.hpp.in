@@ -6,6 +6,8 @@
 
 #include <string>
 
+#cmakedefine GLCV_HEADLESS
+
 namespace examples {
 
 inline std::string shader_path()

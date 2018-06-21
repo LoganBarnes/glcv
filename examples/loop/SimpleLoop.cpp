@@ -5,6 +5,7 @@
 #include "SimpleLoop.hpp"
 
 #include <glcv/GLCV.hpp>
+#include <loop/ExampleConfig.hpp>
 
 #define GLFW_INCLUDE_NONE
 #define GLFW_INCLUDE_VULKAN
@@ -30,15 +31,41 @@ SimpleLoop::SimpleLoop(const std::string &title, int width, int height, bool res
     });
 
     init_glfw();
+
+#ifndef GLCV_HEADLESS
     create_window(title, width, height, resizable);
     set_callbacks();
+#endif
     resize(width, height);
+}
+
+std::vector<const char *> SimpleLoop::get_required_glfw_extensions() const
+{
+    std::vector<const char *> extensions;
+
+#ifndef GLCV_HEADLESS
+    uint32_t count;
+    const char **glfw_extensions = glfwGetRequiredInstanceExtensions(&count);
+
+    for (int i = 0; i < count; ++i) {
+        extensions.emplace_back(glfw_extensions[i]);
+    }
+#endif
+    return extensions;
 }
 
 SimpleLoop::~SimpleLoop() = default;
 
 void SimpleLoop::run_loop()
 {
+#ifdef GLCV_HEADLESS
+    for (int i = 0; i < 100; ++i) {
+        update(static_cast<float>(sim_time_), static_cast<float>(time_step_));
+        sim_time_ += time_step_;
+        render(640, 480, 1.f);
+        glfwPollEvents();
+    }
+#else
     auto currentTime = std::chrono::steady_clock::now();
     double accumulator = 0.0;
 
@@ -73,20 +100,7 @@ void SimpleLoop::run_loop()
             glfwPollEvents();
         }
     } while (!glfwWindowShouldClose(window_.get()));
-}
-
-int SimpleLoop::get_framebuffer_width() const
-{
-    int w, h;
-    glfwGetFramebufferSize(window_.get(), &w, &h);
-    return w;
-}
-
-int SimpleLoop::get_framebuffer_height() const
-{
-    int w, h;
-    glfwGetFramebufferSize(window_.get(), &w, &h);
-    return h;
+#endif
 }
 
 void SimpleLoop::init_glfw()
@@ -142,9 +156,9 @@ void SimpleLoop::set_callbacks()
 {
     glfwSetWindowUserPointer(window_.get(), this);
 
-    glfwSetFramebufferSizeCallback(window_.get(), [](GLFWwindow *window, int width, int height) {
-        static_cast<SimpleLoop *>(glfwGetWindowUserPointer(window))->resize(width, height);
-    });
+    //    glfwSetFramebufferSizeCallback(window_.get(), [](GLFWwindow *window, int width, int height) {
+    //        static_cast<SimpleLoop *>(glfwGetWindowUserPointer(window))->resize(width, height);
+    //    });
 
     glfwSetMouseButtonCallback(window_.get(), [](GLFWwindow *window, int button, int action, int) {
         auto simple_loop = static_cast<SimpleLoop *>(glfwGetWindowUserPointer(window));

@@ -16,12 +16,12 @@ std::vector<VkExtensionProperties> GLCV::get_available_extensions()
     return extensions;
 }
 
-void GLCV::init(const std::string &app_name)
+void GLCV::init(const std::string &app_name, const std::vector<const char *> &extensions_names)
 {
-    create_instance(app_name);
+    create_instance(app_name, extensions_names);
 }
 
-void GLCV::create_instance(const std::string &app_name)
+void GLCV::create_instance(const std::string &app_name, const std::vector<const char *> &extensions_names)
 {
     VkApplicationInfo app_info = {};
     app_info.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
@@ -37,8 +37,8 @@ void GLCV::create_instance(const std::string &app_name)
     instance_info.pNext = nullptr;
     instance_info.flags = 0;
     instance_info.pApplicationInfo = &app_info;
-    instance_info.enabledExtensionCount = 0;
-    instance_info.ppEnabledExtensionNames = nullptr;
+    instance_info.enabledExtensionCount = static_cast<uint32_t>(extensions_names.size());
+    instance_info.ppEnabledExtensionNames = (extensions_names.empty() ? nullptr : extensions_names.data());
     instance_info.enabledLayerCount = 0;
     instance_info.ppEnabledLayerNames = nullptr;
 
