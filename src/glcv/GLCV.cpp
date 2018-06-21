@@ -1,13 +1,13 @@
 // ////////////////////////////////////////////////////////////
-// Vulkan Graphics Classes
+// Graphics Library Classes Vulkan
 // Copyright (c) 2018. All rights reserved.
 // ////////////////////////////////////////////////////////////
-#include "VGC.hpp"
+#include "GLCV.hpp"
 #include <stdexcept>
 
-//namespace vgc {
+//namespace glcv {
 
-std::vector<VkExtensionProperties> VGC::get_available_extensions()
+std::vector<VkExtensionProperties> GLCV::get_available_extensions()
 {
     uint32_t extension_count = 0;
     vkEnumerateInstanceExtensionProperties(nullptr, &extension_count, nullptr);
@@ -16,12 +16,12 @@ std::vector<VkExtensionProperties> VGC::get_available_extensions()
     return extensions;
 }
 
-void VGC::init(const std::string &app_name)
+void GLCV::init(const std::string &app_name)
 {
     create_instance(app_name);
 }
 
-void VGC::create_instance(const std::string &app_name)
+void GLCV::create_instance(const std::string &app_name)
 {
     VkApplicationInfo app_info = {};
     app_info.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
@@ -42,7 +42,7 @@ void VGC::create_instance(const std::string &app_name)
     instance_info.enabledLayerCount = 0;
     instance_info.ppEnabledLayerNames = nullptr;
 
-    auto &instance = VGC::self().instance_;
+    auto &instance = GLCV::self().instance_;
     instance = std::shared_ptr<VkInstance>(new VkInstance(), [](auto p) {
         vkDestroyInstance(*p, nullptr);
         delete p;
@@ -56,13 +56,13 @@ void VGC::create_instance(const std::string &app_name)
     }
 }
 
-VGC::VGC() = default;
-VGC::~VGC() = default;
+GLCV::GLCV() = default;
+GLCV::~GLCV() = default;
 
-VGC &VGC::self()
+GLCV &GLCV::self()
 {
-    static VGC vgc;
-    return vgc;
+    static GLCV glcv;
+    return glcv;
 }
 
-//} // namespace vgc
+//} // namespace glcv

@@ -1,5 +1,5 @@
 // ////////////////////////////////////////////////////////////
-// Vulkan Graphics Classes
+// Graphics Library Classes Vulkan
 // Copyright (c) 2018. All rights reserved.
 // ////////////////////////////////////////////////////////////
 #pragma once
@@ -9,7 +9,7 @@
 #include <memory>
 #include <vector>
 
-//namespace vgc
+//namespace glcv
 //{
 template <typename T, typename D, D Deleter>
 struct stateless_deleter
@@ -19,27 +19,27 @@ struct stateless_deleter
     void operator()(T x) { Deleter(x); }
 };
 
-class VGC
+class GLCV
 {
 public:
     static std::vector<VkExtensionProperties> get_available_extensions();
 
     // TODO: add extensions input
-    static void init(const std::string &app_name = "VGC Application");
-    static void create_instance(const std::string &app_name = "VGC Application");
+    static void init(const std::string &app_name = "GLCV Application");
+    static void create_instance(const std::string &app_name = "GLCV Application");
 
-    VGC(const VGC &) = delete;
-    VGC(VGC &&) noexcept = delete;
-    VGC &operator=(const VGC &) = delete;
-    VGC &operator=(VGC &&) noexcept = delete;
+    GLCV(const GLCV &) = delete;
+    GLCV(GLCV &&) noexcept = delete;
+    GLCV &operator=(const GLCV &) = delete;
+    GLCV &operator=(GLCV &&) noexcept = delete;
 
 private:
-    VGC();
-    ~VGC();
+    GLCV();
+    ~GLCV();
 
-    static VGC &self();
+    static GLCV &self();
 
     std::shared_ptr<VkInstance> instance_;
 };
 
-//} // namespace vgc
+//} // namespace glcv

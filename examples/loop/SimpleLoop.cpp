@@ -1,10 +1,10 @@
 // ////////////////////////////////////////////////////////////
-// Graphics Library Classes
+// Graphics Library Classes Vulkan
 // Copyright (c) 2018. All rights reserved.
 // ////////////////////////////////////////////////////////////
 #include "SimpleLoop.hpp"
 
-#include <vgc/VGC.hpp>
+#include <glcv/GLCV.hpp>
 
 #define GLFW_INCLUDE_NONE
 #define GLFW_INCLUDE_VULKAN

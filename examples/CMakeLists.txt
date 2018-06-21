@@ -1,5 +1,5 @@
 ###############################################################
-# Vulkan Graphics Classes
+# Graphics Library Classes Vulkan
 # Copyright (c) 2018. All rights reserved.
 ###############################################################
 configure_file(ExampleConfig.hpp.in ${CMAKE_BINARY_DIR}/loop/ExampleConfig.hpp)
@@ -29,7 +29,7 @@ download_project(PROJ imgui
         ${QUIET_FLAG}
         )
 
-add_library(vgc-examples-thirdparty
+add_library(glcv-examples-thirdparty
         # imgui
         ${imgui_SOURCE_DIR}/imconfig.h
         ${imgui_SOURCE_DIR}/imgui.cpp
@@ -43,15 +43,15 @@ add_library(vgc-examples-thirdparty
         ${imgui_SOURCE_DIR}/examples/vulkan_example/imgui_impl_glfw_vulkan.cpp
         ${imgui_SOURCE_DIR}/examples/vulkan_example/imgui_impl_glfw_vulkan.h
         )
-target_include_directories(vgc-examples-thirdparty SYSTEM PUBLIC
+target_include_directories(glcv-examples-thirdparty SYSTEM PUBLIC
         ${imgui_SOURCE_DIR}
         ${imgui_SOURCE_DIR}/examples/vulkan_example
         )
-target_link_libraries(vgc-examples-thirdparty Vulkan::Vulkan glfw)
+target_link_libraries(glcv-examples-thirdparty Vulkan::Vulkan glfw)
 
 # Simple update/render loop for the examples
 add_library(example_loop loop/SimpleLoop)
-target_link_libraries(example_loop vgc vgc-examples-thirdparty)
+target_link_libraries(example_loop glcv glcv-examples-thirdparty)
 target_include_directories(example_loop PUBLIC . ${CMAKE_BINARY_DIR})
 
 function(add_example example_dir)

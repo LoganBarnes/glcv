@@ -1,17 +1,17 @@
 ###############################################################
-# Vulkan Graphics Classes
+# Graphics Library Classes Vulkan
 # Copyright (c) 2018. All rights reserved.
 ###############################################################
 cmake_minimum_required(VERSION 3.11.0)
-project(VulkanGraphicsClasses)
+project(GLCV)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-option(VGC_BUILD_TESTS "Build unit tests with GoogleTest and GLFW" OFF)
-option(VGC_BUILD_EXAMPLES "Build example classes with GLFW" OFF)
-option(VGC_UPDATE_REPOS "Update thirdparty git repos" OFF)
-option(VGC_USE_DEV_FLAGS "Compile with all the flags" OFF)
+option(GLCV_BUILD_TESTS "Build unit tests with GoogleTest and GLFW" OFF)
+option(GLCV_BUILD_EXAMPLES "Build example classes with GLFW" OFF)
+option(GLCV_UPDATE_REPOS "Update thirdparty git repos" OFF)
+option(GLCV_USE_DEV_FLAGS "Compile with all the flags" OFF)
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 
@@ -20,7 +20,7 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 ######################
 include(DownloadProject)
 
-if (VGC_UPDATE_REPOS)
+if (GLCV_UPDATE_REPOS)
     set(UPDATE_STATUS 0)
 else ()
     set(UPDATE_STATUS 1)
@@ -48,15 +48,15 @@ download_project(PROJ imgui
 
 find_package(Vulkan REQUIRED)
 
-add_library(vgc-thirdparty INTERFACE)
-target_include_directories(vgc-thirdparty SYSTEM INTERFACE ${glm_SOURCE_DIR})
-target_link_libraries(vgc-thirdparty INTERFACE Vulkan::Vulkan)
+add_library(glcv-thirdparty INTERFACE)
+target_include_directories(glcv-thirdparty SYSTEM INTERFACE ${glm_SOURCE_DIR})
+target_link_libraries(glcv-thirdparty INTERFACE Vulkan::Vulkan)
 
 
 #############################
 ### Project Configuration ###
 #############################
-if (VGC_USE_DEV_FLAGS)
+if (GLCV_USE_DEV_FLAGS)
     if (NOT MSVC)
         set(STRICT_FLAGS -Wall -Wextra -Werror -Wpedantic -Winit-self
                 -Wold-style-cast -Woverloaded-virtual -Wsign-conversion
@@ -73,17 +73,17 @@ endif ()
 ###############################
 ### Vulkan Graphics Classes ###
 ###############################
-set(VGC_SOURCE
-        src/vgc/VGC.cpp
-        src/vgc/VGC.hpp
+set(GLCV_SOURCE
+        src/glcv/GLCV.cpp
+        src/glcv/GLCV.hpp
         )
 
-add_library(vgc ${VGC_SOURCE})
-target_include_directories(vgc PUBLIC src)
-target_link_libraries(vgc vgc-thirdparty)
-target_compile_options(vgc PRIVATE ${STRICT_FLAGS})
+add_library(glcv ${GLCV_SOURCE})
+target_include_directories(glcv PUBLIC src)
+target_link_libraries(glcv glcv-thirdparty)
+target_compile_options(glcv PRIVATE ${STRICT_FLAGS})
 
-if (${VGC_BUILD_EXAMPLES})
+if (${GLCV_BUILD_EXAMPLES})
     add_subdirectory(examples)
 endif ()
 
