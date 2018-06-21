@@ -76,7 +76,6 @@ script:
    -DGLCV_HEADLESS=ON \
    ..
   - make -j
-  - ./examples/example_wire_cube
 
   - cd ${TRAVIS_BUILD_DIR}
   - mkdir cmake-build-release
@@ -90,7 +89,6 @@ script:
    -DGLCV_HEADLESS=ON \
    ..
   - make -j
-  - ./examples/example_wire_cube
 
 notifications:
   on_success: never
