@@ -5,7 +5,6 @@
 #include "SimpleLoop.hpp"
 
 #include <glcv/GLCV.hpp>
-#include <loop/ExampleConfig.hpp>
 
 #define GLFW_INCLUDE_NONE
 #define GLFW_INCLUDE_VULKAN
@@ -30,27 +29,21 @@ SimpleLoop::SimpleLoop(const std::string &title, int width, int height, bool res
         std::cerr << "ERROR: (" << error << ") " << description << std::endl;
     });
 
-#ifndef GLCV_HEADLESS
     init_glfw();
-
     create_window(title, width, height, resizable);
     set_callbacks();
     resize(width, height);
-#endif
 }
 
-std::vector<const char *> SimpleLoop::get_required_glfw_extensions() const
+std::vector<const char *> SimpleLoop::get_required_extensions() const
 {
-    std::vector<const char *> extensions;
-
-#ifndef GLCV_HEADLESS
     uint32_t count;
     const char **glfw_extensions = glfwGetRequiredInstanceExtensions(&count);
 
+    std::vector<const char *> extensions;
     for (int i = 0; i < count; ++i) {
         extensions.emplace_back(glfw_extensions[i]);
     }
-#endif
     return extensions;
 }
 
@@ -58,13 +51,6 @@ SimpleLoop::~SimpleLoop() = default;
 
 void SimpleLoop::run_loop()
 {
-#ifdef GLCV_HEADLESS
-    for (int i = 0; i < 1000; ++i) {
-        update(static_cast<float>(sim_time_), static_cast<float>(time_step_));
-        sim_time_ += time_step_;
-        render(640, 480, 1.f);
-    }
-#else
     auto currentTime = std::chrono::steady_clock::now();
     double accumulator = 0.0;
 
@@ -99,7 +85,6 @@ void SimpleLoop::run_loop()
             glfwPollEvents();
         }
     } while (!glfwWindowShouldClose(window_.get()));
-#endif
 }
 
 void SimpleLoop::init_glfw()

@@ -18,7 +18,7 @@ public:
             std::cout << '\t' << extension.extensionName << std::endl;
         }
 
-        std::vector<const char *> required_ext = get_required_glfw_extensions();
+        std::vector<const char *> required_ext = get_required_extensions();
 
         std::cout << "\nRequired extensions:" << std::endl;
         for (const auto &extension : required_ext) {

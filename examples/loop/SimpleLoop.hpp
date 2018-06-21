@@ -31,7 +31,7 @@ public:
 
     void run_loop();
 
-    std::vector<const char *> get_required_glfw_extensions() const;
+    std::vector<const char *> get_required_extensions() const;
 
 protected:
     bool paused_ = true;
