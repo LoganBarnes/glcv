@@ -22,7 +22,7 @@ matrix:
             - libmirclient-dev
             - libwayland-dev
             - libxrandr-dev
-#            - lcov
+            - lcov
       env:
         - MATRIX_EVAL="CC=gcc-7 && CXX=g++-7"
 
@@ -76,7 +76,7 @@ script:
    -DGLCV_HEADLESS=ON \
    ..
   - make -j
-  - ./example_wire_cube
+  - ./examples/example_wire_cube
 
   - cd ${TRAVIS_BUILD_DIR}
   - mkdir cmake-build-release
@@ -90,8 +90,7 @@ script:
    -DGLCV_HEADLESS=ON \
    ..
   - make -j
-  - ./example_wire_cube
-
+  - ./examples/example_wire_cube
 
 notifications:
   on_success: never
