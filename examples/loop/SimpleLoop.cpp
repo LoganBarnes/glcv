@@ -30,13 +30,13 @@ SimpleLoop::SimpleLoop(const std::string &title, int width, int height, bool res
         std::cerr << "ERROR: (" << error << ") " << description << std::endl;
     });
 
+#ifndef GLCV_HEADLESS
     init_glfw();
 
-#ifndef GLCV_HEADLESS
     create_window(title, width, height, resizable);
     set_callbacks();
-#endif
     resize(width, height);
+#endif
 }
 
 std::vector<const char *> SimpleLoop::get_required_glfw_extensions() const
@@ -59,11 +59,10 @@ SimpleLoop::~SimpleLoop() = default;
 void SimpleLoop::run_loop()
 {
 #ifdef GLCV_HEADLESS
-    for (int i = 0; i < 100; ++i) {
+    for (int i = 0; i < 1000; ++i) {
         update(static_cast<float>(sim_time_), static_cast<float>(time_step_));
         sim_time_ += time_step_;
         render(640, 480, 1.f);
-        glfwPollEvents();
     }
 #else
     auto currentTime = std::chrono::steady_clock::now();
