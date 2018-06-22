@@ -55,11 +55,16 @@ target_link_libraries(glcv-examples-thirdparty Vulkan::Vulkan glfw)
 ############################
 ### Example Loop Library ###
 ############################
-
 configure_file(ExampleConfig.hpp.in ${CMAKE_BINARY_DIR}/loop/ExampleConfig.hpp)
 
+set(LOOP_SOURCE
+        loop/SimpleLoop.cpp
+        loop/SimpleLoop.hpp
+        loop/vector_util.hpp
+        )
+
 # Simple update/render loop for the examples
-add_library(example_loop loop/SimpleLoop.cpp loop/SimpleLoop.hpp)
+add_library(example_loop ${LOOP_SOURCE})
 target_link_libraries(example_loop glcv glcv-examples-thirdparty)
 target_include_directories(example_loop PUBLIC . ${CMAKE_BINARY_DIR})
 

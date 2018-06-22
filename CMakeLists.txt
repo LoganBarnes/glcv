@@ -77,6 +77,8 @@ endif ()
 set(GLCV_SOURCE
         src/glcv/GLCV.cpp
         src/glcv/GLCV.hpp
+        src/glcv/VulkanUtil.cpp
+        src/glcv/VulkanUtil.hpp
         )
 
 add_library(glcv ${GLCV_SOURCE})

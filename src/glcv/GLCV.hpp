@@ -11,25 +11,17 @@
 
 //namespace glcv
 //{
-template <typename T, typename D, D Deleter>
-struct stateless_deleter
-{
-    typedef T pointer;
-
-    void operator()(T x) { Deleter(x); }
-};
 
 class GLCV
 {
 public:
-    static std::vector<VkExtensionProperties> get_available_extensions();
-
-    // TODO: add extensions input
     static void init(const std::string &app_name = "GLCV Application",
-                     const std::vector<const char *> &extensions_names = {});
+                     const std::vector<const char *> &extension_names = {},
+                     const std::vector<const char *> &layer_names = {});
 
     static void create_instance(const std::string &app_name = "GLCV Application",
-                                const std::vector<const char *> &extensions_names = {});
+                                const std::vector<const char *> &extension_names = {},
+                                const std::vector<const char *> &layer_names = {});
 
     GLCV(const GLCV &) = delete;
     GLCV(GLCV &&) noexcept = delete;

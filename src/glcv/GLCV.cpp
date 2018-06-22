@@ -3,26 +3,25 @@
 // Copyright (c) 2018. All rights reserved.
 // ////////////////////////////////////////////////////////////
 #include "GLCV.hpp"
+#include "VulkanUtil.hpp"
 #include <stdexcept>
 
 //namespace glcv {
 
-std::vector<VkExtensionProperties> GLCV::get_available_extensions()
+void GLCV::init(const std::string &app_name,
+                const std::vector<const char *> &extension_names,
+                const std::vector<const char *> &layer_names)
 {
-    uint32_t extension_count = 0;
-    vkEnumerateInstanceExtensionProperties(nullptr, &extension_count, nullptr);
-    std::vector<VkExtensionProperties> extensions(extension_count);
-    vkEnumerateInstanceExtensionProperties(nullptr, &extension_count, extensions.data());
-    return extensions;
+    create_instance(app_name, extension_names, layer_names);
 }
 
-void GLCV::init(const std::string &app_name, const std::vector<const char *> &extensions_names)
+void GLCV::create_instance(const std::string &app_name,
+                           const std::vector<const char *> &extension_names,
+                           const std::vector<const char *> &layer_names)
 {
-    create_instance(app_name, extensions_names);
-}
+    glcv::check_extension_support(extension_names);
+    glcv::check_layer_support(layer_names);
 
-void GLCV::create_instance(const std::string &app_name, const std::vector<const char *> &extensions_names)
-{
     VkApplicationInfo app_info = {};
     app_info.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
     app_info.pNext = nullptr;
@@ -37,10 +36,10 @@ void GLCV::create_instance(const std::string &app_name, const std::vector<const 
     instance_info.pNext = nullptr;
     instance_info.flags = 0;
     instance_info.pApplicationInfo = &app_info;
-    instance_info.enabledExtensionCount = static_cast<uint32_t>(extensions_names.size());
-    instance_info.ppEnabledExtensionNames = (extensions_names.empty() ? nullptr : extensions_names.data());
-    instance_info.enabledLayerCount = 0;
-    instance_info.ppEnabledLayerNames = nullptr;
+    instance_info.enabledExtensionCount = static_cast<uint32_t>(extension_names.size());
+    instance_info.ppEnabledExtensionNames = (extension_names.empty() ? nullptr : extension_names.data());
+    instance_info.enabledLayerCount = static_cast<uint32_t>(layer_names.size());
+    instance_info.ppEnabledLayerNames = (layer_names.empty() ? nullptr : layer_names.data());
 
     auto &instance = GLCV::self().instance_;
     instance = std::shared_ptr<VkInstance>(new VkInstance(), [](auto p) {
