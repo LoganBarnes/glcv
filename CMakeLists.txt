@@ -75,6 +75,8 @@ endif ()
 ### Vulkan Graphics Classes ###
 ###############################
 set(GLCV_SOURCE
+        src/glcv/ErrorCheck.cpp
+        src/glcv/ErrorCheck.hpp
         src/glcv/GLCV.cpp
         src/glcv/GLCV.hpp
         src/glcv/VulkanUtil.cpp

@@ -4,6 +4,7 @@
 // ////////////////////////////////////////////////////////////
 #include "GLCV.hpp"
 #include "VulkanUtil.hpp"
+#include "ErrorCheck.hpp"
 #include <stdexcept>
 #include <iostream>
 #include <algorithm>
@@ -115,12 +116,7 @@ void GLCV::create_instance(const std::string &app_name,
         delete p;
     });
 
-    VkResult res = vkCreateInstance(&instance_info, nullptr, instance_.get());
-
-    if (res != VK_SUCCESS) {
-        // TODO: print VkResult somehow?
-        throw std::runtime_error("GLCV ERROR: Failed to create Vulkan instance!");
-    }
+    GLCV_CHECK(vkCreateInstance(&instance_info, nullptr, instance_.get()));
     DEBUG_PRINT("Vulkan instance created");
 }
 
@@ -141,11 +137,7 @@ void GLCV::setup_debug_callback()
         delete p;
     });
 
-    VkResult res = CreateDebugReportCallbackEXT(*instance_, &debug_info, nullptr, debug_callback_.get());
-    if (res != VK_SUCCESS) {
-        // TODO: print VkResult somehow?
-        throw std::runtime_error("GLCV ERROR: Failed to set up debug callback!");
-    }
+    GLCV_CHECK(CreateDebugReportCallbackEXT(*instance_, &debug_info, nullptr, debug_callback_.get()));
     DEBUG_PRINT("Vulkan debug report callback created");
 }
 
