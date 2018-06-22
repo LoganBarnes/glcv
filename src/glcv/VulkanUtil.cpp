@@ -13,20 +13,20 @@ namespace glcv {
 std::vector<VkExtensionProperties> get_available_extensions()
 {
     uint32_t extension_count = 0;
-    vkEnumerateInstanceExtensionProperties(nullptr, &extension_count, nullptr);
+    GLCV_CHECK(vkEnumerateInstanceExtensionProperties(nullptr, &extension_count, nullptr));
 
     std::vector<VkExtensionProperties> extensions(extension_count);
-    vkEnumerateInstanceExtensionProperties(nullptr, &extension_count, extensions.data());
+    GLCV_CHECK(vkEnumerateInstanceExtensionProperties(nullptr, &extension_count, extensions.data()));
     return extensions;
 }
 
 std::vector<VkLayerProperties> get_available_layers()
 {
     uint32_t layer_count = 0;
-    vkEnumerateInstanceLayerProperties(&layer_count, nullptr);
+    GLCV_CHECK(vkEnumerateInstanceLayerProperties(&layer_count, nullptr));
 
     std::vector<VkLayerProperties> layers(layer_count);
-    vkEnumerateInstanceLayerProperties(&layer_count, layers.data());
+    GLCV_CHECK(vkEnumerateInstanceLayerProperties(&layer_count, layers.data()));
     return layers;
 }
 
@@ -60,6 +60,16 @@ void check_layer_support(const std::vector<const char *> &requested)
             throw std::runtime_error("Layer '" + std::string(layer) + "' NOT SUPPORTED");
         }
     }
+}
+
+std::vector<VkPhysicalDevice> get_available_devices(VkInstance instance)
+{
+    uint32_t device_count = 0;
+    GLCV_CHECK(vkEnumeratePhysicalDevices(instance, &device_count, nullptr));
+
+    std::vector<VkPhysicalDevice> devices(device_count);
+    GLCV_CHECK(vkEnumeratePhysicalDevices(instance, &device_count, devices.data()));
+    return devices;
 }
 
 } // namespace glcv

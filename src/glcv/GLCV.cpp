@@ -73,6 +73,12 @@ void GLCV::init(const std::string &app_name,
     }
 }
 
+std::vector<VkPhysicalDevice> GLCV::get_available_devices()
+{
+    auto &self = GLCV::self();
+    return glcv::get_available_devices(*self.instance_);
+}
+
 GLCV::GLCV() = default;
 GLCV::~GLCV() = default;
 

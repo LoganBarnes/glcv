@@ -40,6 +40,12 @@ private:
 #endif
 
         GLCV::init("Example", requested_ext, requested_layers, debug);
+
+        VkPhysicalDeviceProperties device_props;
+        util::print_vector("Available devices:", GLCV::get_available_devices(), [&](auto &device) {
+            vkGetPhysicalDeviceProperties(device, &device_props);
+            return device_props.deviceName;
+        });
     }
 };
 

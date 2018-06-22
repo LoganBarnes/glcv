@@ -17,6 +17,8 @@ public:
                      const std::vector<const char *> &layer_names = {},
                      bool set_debug_callback = false);
 
+    static std::vector<VkPhysicalDevice> get_available_devices();
+
     GLCV(const GLCV &) = delete;
     GLCV(GLCV &&) noexcept = delete;
     GLCV &operator=(const GLCV &) = delete;
