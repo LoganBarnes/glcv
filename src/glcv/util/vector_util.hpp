@@ -6,8 +6,9 @@
 
 #include <iostream>
 #include <vector>
+#include <algorithm>
 
-namespace loop {
+namespace util {
 
 template <typename T>
 void print_vector(const std::string &header, const std::vector<T> &vec)
@@ -39,4 +40,10 @@ void print_vector(const std::string &header, const std::vector<T> &vec, const Ca
     std::cout << std::endl;
 }
 
-} // namespace loop
+template <typename T>
+bool has_value(const std::vector<T> &vec, const T &value)
+{
+    return std::find(vec.begin(), vec.end(), value) != vec.end();
+}
+
+} // namespace util

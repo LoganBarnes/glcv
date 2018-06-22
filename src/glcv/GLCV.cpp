@@ -5,14 +5,80 @@
 #include "GLCV.hpp"
 #include "VulkanUtil.hpp"
 #include <stdexcept>
+#include <iostream>
+#include <algorithm>
+#include <glcv/util/vector_util.hpp>
 
-//namespace glcv {
+//#define DEBUG_PRINT(msg) {}
+#define DEBUG_PRINT(msg) std::cout << "DEBUG: " << (msg) << std::endl
+
+namespace {
+
+VKAPI_ATTR VkBool32 VKAPI_CALL debug_callback(VkDebugReportFlagsEXT /*flags*/,
+                                              VkDebugReportObjectTypeEXT /*obj_type*/,
+                                              uint64_t /*obj*/,
+                                              size_t /*location*/,
+                                              int32_t /*code*/,
+                                              const char * /*layer_prefix*/,
+                                              const char *msg,
+                                              void * /*user_data*/)
+{
+    std::cerr << "ERROR (Vulkan validation layer): " << msg << std::endl;
+    return VK_FALSE;
+}
+
+// The 'vkCreateDebugReportCallbackEXT' function has to be looked up explicitly since it is an extension.
+// This function handles the lookup process and calls the function if it exists.
+VkResult CreateDebugReportCallbackEXT(VkInstance instance,
+                                      const VkDebugReportCallbackCreateInfoEXT *pCreateInfo,
+                                      const VkAllocationCallbacks *pAllocator,
+                                      VkDebugReportCallbackEXT *pCallback)
+{
+    auto func = reinterpret_cast<PFN_vkCreateDebugReportCallbackEXT>(
+        vkGetInstanceProcAddr(instance, "vkCreateDebugReportCallbackEXT"));
+
+    if (func != nullptr) {
+        return func(instance, pCreateInfo, pAllocator, pCallback);
+    } else {
+        return VK_ERROR_EXTENSION_NOT_PRESENT;
+    }
+}
+
+// The 'vkDestroyDebugReportCallbackEXT' function has to be looked up explicitly since it is an extension.
+// This function handles the lookup process and calls the function if it exists.
+void DestroyDebugReportCallbackEXT(VkInstance instance,
+                                   VkDebugReportCallbackEXT callback,
+                                   const VkAllocationCallbacks *pAllocator)
+{
+    auto func = reinterpret_cast<PFN_vkDestroyDebugReportCallbackEXT>(
+        vkGetInstanceProcAddr(instance, "vkDestroyDebugReportCallbackEXT"));
+
+    if (func != nullptr) {
+        func(instance, callback, pAllocator);
+    }
+}
+
+} // namespace
 
 void GLCV::init(const std::string &app_name,
                 const std::vector<const char *> &extension_names,
-                const std::vector<const char *> &layer_names)
+                const std::vector<const char *> &layer_names,
+                bool set_debug_callback)
 {
-    create_instance(app_name, extension_names, layer_names);
+    GLCV::self().create_instance(app_name, extension_names, layer_names);
+
+    if (set_debug_callback) {
+        GLCV::self().setup_debug_callback();
+    }
+}
+
+GLCV::GLCV() = default;
+GLCV::~GLCV() = default;
+
+GLCV &GLCV::self()
+{
+    static GLCV glcv;
+    return glcv;
 }
 
 void GLCV::create_instance(const std::string &app_name,
@@ -41,27 +107,46 @@ void GLCV::create_instance(const std::string &app_name,
     instance_info.enabledLayerCount = static_cast<uint32_t>(layer_names.size());
     instance_info.ppEnabledLayerNames = (layer_names.empty() ? nullptr : layer_names.data());
 
-    auto &instance = GLCV::self().instance_;
-    instance = std::shared_ptr<VkInstance>(new VkInstance(), [](auto p) {
-        vkDestroyInstance(*p, nullptr);
+    instance_ = std::shared_ptr<VkInstance>(new VkInstance(nullptr), [](auto p) {
+        if (*p) {
+            vkDestroyInstance(*p, nullptr);
+            DEBUG_PRINT("Vulkan instance destroyed");
+        }
         delete p;
     });
 
-    VkResult res = vkCreateInstance(&instance_info, nullptr, instance.get());
+    VkResult res = vkCreateInstance(&instance_info, nullptr, instance_.get());
 
     if (res != VK_SUCCESS) {
-        // TODO: print res somehow?
-        throw std::runtime_error("failed to create instance!");
+        // TODO: print VkResult somehow?
+        throw std::runtime_error("GLCV ERROR: Failed to create Vulkan instance!");
     }
+    DEBUG_PRINT("Vulkan instance created");
 }
 
-GLCV::GLCV() = default;
-GLCV::~GLCV() = default;
-
-GLCV &GLCV::self()
+void GLCV::setup_debug_callback()
 {
-    static GLCV glcv;
-    return glcv;
+    VkDebugReportCallbackCreateInfoEXT debug_info = {};
+    debug_info.sType = VK_STRUCTURE_TYPE_DEBUG_REPORT_CALLBACK_CREATE_INFO_EXT;
+    debug_info.pNext = nullptr;
+    debug_info.flags = VK_DEBUG_REPORT_ERROR_BIT_EXT | VK_DEBUG_REPORT_WARNING_BIT_EXT;
+    debug_info.pfnCallback = debug_callback;
+    debug_info.pUserData = nullptr;
+
+    debug_callback_ = std::shared_ptr<VkDebugReportCallbackEXT>(new VkDebugReportCallbackEXT(nullptr), [this](auto p) {
+        if (*p) {
+            DestroyDebugReportCallbackEXT(*instance_, *p, nullptr);
+            DEBUG_PRINT("Vulkan debug report callback destroyed");
+        }
+        delete p;
+    });
+
+    VkResult res = CreateDebugReportCallbackEXT(*instance_, &debug_info, nullptr, debug_callback_.get());
+    if (res != VK_SUCCESS) {
+        // TODO: print VkResult somehow?
+        throw std::runtime_error("GLCV ERROR: Failed to set up debug callback!");
+    }
+    DEBUG_PRINT("Vulkan debug report callback created");
 }
 
 //} // namespace glcv

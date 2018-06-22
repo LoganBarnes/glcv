@@ -60,7 +60,6 @@ configure_file(ExampleConfig.hpp.in ${CMAKE_BINARY_DIR}/loop/ExampleConfig.hpp)
 set(LOOP_SOURCE
         loop/SimpleLoop.cpp
         loop/SimpleLoop.hpp
-        loop/vector_util.hpp
         )
 
 # Simple update/render loop for the examples

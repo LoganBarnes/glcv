@@ -9,19 +9,13 @@
 #include <memory>
 #include <vector>
 
-//namespace glcv
-//{
-
 class GLCV
 {
 public:
     static void init(const std::string &app_name = "GLCV Application",
                      const std::vector<const char *> &extension_names = {},
-                     const std::vector<const char *> &layer_names = {});
-
-    static void create_instance(const std::string &app_name = "GLCV Application",
-                                const std::vector<const char *> &extension_names = {},
-                                const std::vector<const char *> &layer_names = {});
+                     const std::vector<const char *> &layer_names = {},
+                     bool set_debug_callback = false);
 
     GLCV(const GLCV &) = delete;
     GLCV(GLCV &&) noexcept = delete;
@@ -35,6 +29,11 @@ private:
     static GLCV &self();
 
     std::shared_ptr<VkInstance> instance_;
-};
+    std::shared_ptr<VkDebugReportCallbackEXT> debug_callback_;
 
-//} // namespace glcv
+    void create_instance(const std::string &app_name,
+                         const std::vector<const char *> &extension_names,
+                         const std::vector<const char *> &layer_names);
+
+    void setup_debug_callback();
+};

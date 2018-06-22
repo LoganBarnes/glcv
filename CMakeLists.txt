@@ -79,6 +79,8 @@ set(GLCV_SOURCE
         src/glcv/GLCV.hpp
         src/glcv/VulkanUtil.cpp
         src/glcv/VulkanUtil.hpp
+
+        src/glcv/util/vector_util.hpp
         )
 
 add_library(glcv ${GLCV_SOURCE})
