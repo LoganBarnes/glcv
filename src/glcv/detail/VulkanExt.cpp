@@ -2,11 +2,28 @@
 // Created on 6/23/18.
 // Copyright (c) 2018. All rights reserved.
 // ////////////////////////////////////////////////////////////
+#include <iostream>
 #include "VulkanExt.hpp"
 
 extern "C" {
 
+static PFN_vkDestroyInstance pfn_vkDestroyInstance;
 static PFN_vkCreateDebugReportCallbackEXT pfn_vkCreateDebugReportCallbackEXT;
+static PFN_vkDestroyDebugReportCallbackEXT pfn_vkDestroyDebugReportCallbackEXT;
+static PFN_vkDebugReportMessageEXT pfn_vkDebugReportMessageEXT;
+void vkDestroyInstance(VkInstance instance, const VkAllocationCallbacks *pAllocator)
+{
+    auto cpy1 = pfn_vkDestroyInstance;
+    auto cpy2 = pfn_vkCreateDebugReportCallbackEXT;
+    auto cpy3 = pfn_vkDestroyDebugReportCallbackEXT;
+    auto cpy4 = pfn_vkDebugReportMessageEXT;
+    std::cout << cpy1 << std::endl;
+    std::cout << cpy2 << std::endl;
+    std::cout << cpy3 << std::endl;
+    std::cout << cpy4 << std::endl;
+    pfn_vkDestroyInstance(instance, pAllocator);
+}
+
 VkResult vkCreateDebugReportCallbackEXT(VkInstance instance,
                                         const VkDebugReportCallbackCreateInfoEXT *pCreateInfo,
                                         const VkAllocationCallbacks *pAllocator,
@@ -15,7 +32,6 @@ VkResult vkCreateDebugReportCallbackEXT(VkInstance instance,
     return pfn_vkCreateDebugReportCallbackEXT(instance, pCreateInfo, pAllocator, pCallback);
 }
 
-static PFN_vkDestroyDebugReportCallbackEXT pfn_vkDestroyDebugReportCallbackEXT;
 void vkDestroyDebugReportCallbackEXT(VkInstance instance,
                                      VkDebugReportCallbackEXT callback,
                                      const VkAllocationCallbacks *pAllocator)
@@ -23,7 +39,6 @@ void vkDestroyDebugReportCallbackEXT(VkInstance instance,
     pfn_vkDestroyDebugReportCallbackEXT(instance, callback, pAllocator);
 }
 
-static PFN_vkDebugReportMessageEXT pfn_vkDebugReportMessageEXT;
 void vkDebugReportMessageEXT(VkInstance instance,
                              VkDebugReportFlagsEXT flags,
                              VkDebugReportObjectTypeEXT objectType,
@@ -38,6 +53,8 @@ void vkDebugReportMessageEXT(VkInstance instance,
 
 vk::Result vkExtInitInstance(vk::Instance instance)
 {
+    pfn_vkDestroyInstance = reinterpret_cast<PFN_vkDestroyInstance>(instance.getProcAddr("vkDestroyInstance"));
+
     pfn_vkCreateDebugReportCallbackEXT
         = reinterpret_cast<PFN_vkCreateDebugReportCallbackEXT>(instance.getProcAddr("vkCreateDebugReportCallbackEXT"));
 

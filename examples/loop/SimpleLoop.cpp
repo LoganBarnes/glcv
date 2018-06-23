@@ -29,10 +29,10 @@ SimpleLoop::SimpleLoop(const std::string &title, int width, int height, bool res
         std::cerr << "ERROR: (" << error << ") " << description << std::endl;
     });
 
-    init_glfw();
-    create_window(title, width, height, resizable);
-    set_callbacks();
-    resize(width, height);
+    //    init_glfw();
+    //    create_window(title, width, height, resizable);
+    //    set_callbacks();
+    //    resize(width, height);
 }
 
 std::vector<const char *> SimpleLoop::get_required_extensions() const
@@ -51,40 +51,40 @@ SimpleLoop::~SimpleLoop() = default;
 
 void SimpleLoop::run_loop()
 {
-    auto currentTime = std::chrono::steady_clock::now();
-    double accumulator = 0.0;
-
-    do {
-        auto newTime = std::chrono::steady_clock::now();
-        double frameTime = std::chrono::duration<double>{newTime - currentTime}.count();
-        currentTime = newTime;
-
-        frameTime = std::min(0.1, frameTime);
-
-        if (!paused_) {
-            accumulator += frameTime;
-
-            while (accumulator >= time_step_) {
-                update(static_cast<float>(sim_time_), static_cast<float>(time_step_));
-                sim_time_ += time_step_;
-                accumulator -= time_step_;
-            }
-        }
-
-        const double alpha = accumulator / time_step_;
-
-        int w, h;
-        glfwGetFramebufferSize(window_.get(), &w, &h);
-        render(w, h, static_cast<float>(alpha));
-
-        //        glfwSwapBuffers(window_.get());
-
-        if (paused_) {
-            glfwWaitEvents();
-        } else {
-            glfwPollEvents();
-        }
-    } while (!glfwWindowShouldClose(window_.get()));
+    //    auto currentTime = std::chrono::steady_clock::now();
+    //    double accumulator = 0.0;
+    //
+    //    do {
+    //        auto newTime = std::chrono::steady_clock::now();
+    //        double frameTime = std::chrono::duration<double>{newTime - currentTime}.count();
+    //        currentTime = newTime;
+    //
+    //        frameTime = std::min(0.1, frameTime);
+    //
+    //        if (!paused_) {
+    //            accumulator += frameTime;
+    //
+    //            while (accumulator >= time_step_) {
+    //                update(static_cast<float>(sim_time_), static_cast<float>(time_step_));
+    //                sim_time_ += time_step_;
+    //                accumulator -= time_step_;
+    //            }
+    //        }
+    //
+    //        const double alpha = accumulator / time_step_;
+    //
+    //        int w, h;
+    //        glfwGetFramebufferSize(window_.get(), &w, &h);
+    //        render(w, h, static_cast<float>(alpha));
+    //
+    //        //        glfwSwapBuffers(window_.get());
+    //
+    //        if (paused_) {
+    //            glfwWaitEvents();
+    //        } else {
+    //            glfwPollEvents();
+    //        }
+    //    } while (!glfwWindowShouldClose(window_.get()));
 }
 
 void SimpleLoop::init_glfw()

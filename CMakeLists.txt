@@ -8,6 +8,8 @@ project(GLCV)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+#set(BUILD_SHARED_LIBS ON)
+
 option(GLCV_BUILD_TESTS "Build unit tests with GoogleTest and GLFW" OFF)
 option(GLCV_BUILD_EXAMPLES "Build example classes with GLFW" OFF)
 option(GLCV_UPDATE_REPOS "Update thirdparty git repos" OFF)
@@ -47,11 +49,23 @@ download_project(PROJ imgui
         ${QUIET_FLAG}
         )
 
+#set(OLD_BUILD_SHARED_LIBS ${BUILD_SHARED_LIBS})
+
+# Vulkan is not guaranteed to link statically
+#set(BUILD_SHARED_LIBS ON)
 find_package(Vulkan REQUIRED)
+#set(BUILD_SHARED_LIBS ${OLD_BUILD_SHARED_LIBS})
+
+message(WARNING "Vulkan_LIBRARIES: ${Vulkan_LIBRARIES}")
+#get_target_property(Vulkan_LIBS Vulkan::Vulkan INTERFACE_LINK_LIBRARIES)
+get_target_property(Vulkan_LIBS Vulkan::Vulkan IMPORTED_LOCATION)
+message(WARNING "Vulkan_LIBS: ${Vulkan_LIBS}")
 
 add_library(glcv-thirdparty INTERFACE)
 target_include_directories(glcv-thirdparty SYSTEM INTERFACE ${glm_SOURCE_DIR})
-target_link_libraries(glcv-thirdparty INTERFACE Vulkan::Vulkan)
+#target_link_libraries(glcv-thirdparty INTERFACE Vulkan::Vulkan)
+target_include_directories(glcv-thirdparty SYSTEM INTERFACE ${Vulkan_INCLUDE_DIRS})
+target_link_libraries(glcv-thirdparty INTERFACE ${Vulkan_LIBRARIES})
 
 
 #############################

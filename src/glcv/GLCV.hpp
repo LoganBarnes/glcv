@@ -9,15 +9,26 @@
 #include <memory>
 #include <vector>
 
+class GLCV;
+
+namespace glcv {
+namespace detail {
+
+class VulkanHandle;
+
+} // namespace detail
+
+using VulkanHandle = std::shared_ptr<detail::VulkanHandle>;
+
+} // namespace glcv
+
 class GLCV
 {
 public:
-    static void init(const std::string &app_name = "GLCV Application",
-                     const std::vector<const char *> &extension_names = {},
-                     const std::vector<const char *> &layer_names = {},
-                     bool set_debug_callback = false);
-
-    static void destroy();
+    static glcv::VulkanHandle init(const std::string &app_name = "GLCV Application",
+                                   const std::vector<const char *> &extension_names = {},
+                                   const std::vector<const char *> &layer_names = {},
+                                   bool set_debug_callback = false);
 
     static std::vector<vk::PhysicalDevice> get_available_devices();
 
@@ -28,16 +39,16 @@ public:
 
 private:
     GLCV();
-    ~GLCV();
 
     static GLCV &self();
 
-    std::shared_ptr<vk::Instance> instance_;
-    std::shared_ptr<vk::DebugReportCallbackEXT> debug_callback_;
+    std::weak_ptr<glcv::detail::VulkanHandle> handle_;
 
-    void create_instance(const std::string &app_name,
-                         const std::vector<const char *> &extension_names,
-                         const std::vector<const char *> &layer_names);
+    static vk::Instance vkInstance();
 
-    void setup_debug_callback();
+    std::shared_ptr<vk::Instance> make_shared_instance(const std::string &app_name,
+                                                       const std::vector<const char *> &extension_names,
+                                                       const std::vector<const char *> &layer_names);
+
+    std::shared_ptr<vk::DebugReportCallbackEXT> make_shared_debug_report_callback();
 };

@@ -2,12 +2,15 @@
 // Graphics Library Classes Vulkan
 // Copyright (c) 2018. All rights reserved.
 // ////////////////////////////////////////////////////////////
+#include <glcv/detail/VulkanExt.hpp>
 #include <glcv/GLCV.hpp>
 #include "loop/SimpleLoop.hpp"
 #include <glcv/VulkanUtil.hpp>
 #include <glcv/util/vector_util.hpp>
 
 #define VERBOSE
+
+static glcv::VulkanHandle vulkan_handle_;
 
 class WireCube : public examples::SimpleLoop
 {
@@ -17,7 +20,7 @@ public:
     void render(int /*view_width*/, int /*view_height*/, float) const final {}
 
 private:
-    std::shared_ptr<bool> glcv_;
+    //    glcv::VulkanHandle vulkan_handle_;
 
     void instance_init()
     {
@@ -26,8 +29,8 @@ private:
 #ifndef NDEBUG
         requested_ext.emplace_back(VK_EXT_DEBUG_REPORT_EXTENSION_NAME);
         requested_layers.emplace_back("VK_LAYER_LUNARG_standard_validation");
-        bool debug = true;
-#else
+        //        bool debug = true;
+        //#else
         bool debug = false;
 #endif
 
@@ -42,20 +45,13 @@ private:
         util::print_vector("Requested layers:", requested_layers);
 #endif
 
-        glcv_ = std::shared_ptr<bool>(new bool(false), [](auto p) {
-            if (*p) {
-                GLCV::destroy();
-            }
-            delete p;
-        });
-        GLCV::init("Example", requested_ext, requested_layers, debug);
-        *glcv_ = true;
+        vulkan_handle_ = GLCV::init("Example", requested_ext, requested_layers, debug);
 
-        vk::PhysicalDeviceProperties device_props;
-        util::print_vector("\nAvailable devices:", GLCV::get_available_devices(), [&](auto &device) {
-            device.getProperties(&device_props);
-            return device_props.deviceName;
-        });
+        //        vk::PhysicalDeviceProperties device_props;
+        //        util::print_vector("\nAvailable devices:", GLCV::get_available_devices(), [&](auto &device) {
+        //            device.getProperties(&device_props);
+        //            return device_props.deviceName;
+        //        });
     }
 };
 

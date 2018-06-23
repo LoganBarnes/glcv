@@ -31,26 +31,55 @@ VKAPI_ATTR VkBool32 VKAPI_CALL debug_callback(VkDebugReportFlagsEXT /*flags*/,
 
 } // namespace
 
-void GLCV::init(const std::string &app_name,
-                const std::vector<const char *> &extension_names,
-                const std::vector<const char *> &layer_names,
-                bool set_debug_callback)
+namespace glcv {
+namespace detail {
+class VulkanHandle
 {
-    GLCV::self().create_instance(app_name, extension_names, layer_names);
+public:
+    ~VulkanHandle()
+    {
+        if (debug_report_callback_ && *debug_report_callback_) {
+            instance_->destroy(*debug_report_callback_);
+        }
+        instance_->destroy(nullptr);
+    }
+
+private:
+    std::shared_ptr<vk::Instance> instance_;
+    std::shared_ptr<vk::DebugReportCallbackEXT> debug_report_callback_;
+    friend class ::GLCV;
+};
+} // namespace detail
+} // namespace glcv
+
+glcv::VulkanHandle GLCV::init(const std::string &app_name,
+                              const std::vector<const char *> &extension_names,
+                              const std::vector<const char *> &layer_names,
+                              bool set_debug_callback)
+{
+    GLCV &self = GLCV::self();
+
+    if (auto handle = self.handle_.lock()) {
+        return handle;
+    }
+
+    auto handle = std::make_shared<glcv::detail::VulkanHandle>();
+    handle->instance_ = self.make_shared_instance(app_name, extension_names, layer_names);
+
+    self.handle_ = handle; // now GLCV::vkInstance() will work
 
     if (set_debug_callback) {
-        GLCV::self().setup_debug_callback();
+        handle->debug_report_callback_ = self.make_shared_debug_report_callback();
     }
+    return handle;
 }
 
 std::vector<vk::PhysicalDevice> GLCV::get_available_devices()
 {
-    auto &self = GLCV::self();
-    return glcv::get_available_devices(*self.instance_);
+    return glcv::get_available_devices(GLCV::vkInstance());
 }
 
 GLCV::GLCV() = default;
-GLCV::~GLCV() = default;
 
 GLCV &GLCV::self()
 {
@@ -58,9 +87,9 @@ GLCV &GLCV::self()
     return glcv;
 }
 
-void GLCV::create_instance(const std::string &app_name,
-                           const std::vector<const char *> &extension_names,
-                           const std::vector<const char *> &layer_names)
+std::shared_ptr<vk::Instance> GLCV::make_shared_instance(const std::string &app_name,
+                                                         const std::vector<const char *> &extension_names,
+                                                         const std::vector<const char *> &layer_names)
 {
     glcv::check_extension_support(extension_names);
     glcv::check_layer_support(layer_names);
@@ -80,22 +109,24 @@ void GLCV::create_instance(const std::string &app_name,
                                    .setPpEnabledExtensionNames(extension_names.data())
                                    .setEnabledLayerCount(static_cast<uint32_t>(layer_names.size()))
                                    .setPpEnabledLayerNames(layer_names.data());
+    auto instance = std::shared_ptr<vk::Instance>(new vk::Instance(nullptr));
+    //    auto instance = std::shared_ptr<vk::Instance>(new vk::Instance(nullptr), [](auto p) {
+    //        if (*p) {
+    //            p->destroy(nullptr);
+    //            DEBUG_PRINT("Vulkan instance destroyed");
+    //        }
+    //        delete p;
+    //    });
 
-    instance_ = std::shared_ptr<vk::Instance>(new vk::Instance(nullptr), [](auto p) {
-        if (*p) {
-            p->destroy(nullptr);
-            DEBUG_PRINT("Vulkan instance destroyed");
-        }
-        delete p;
-    });
-
-    GLCV_CHECK(vk::createInstance(&instance_info, nullptr, instance_.get()));
+    GLCV_CHECK(vk::createInstance(&instance_info, nullptr, instance.get()));
     DEBUG_PRINT("Vulkan instance created");
+    return instance;
 }
 
-void GLCV::setup_debug_callback()
+std::shared_ptr<vk::DebugReportCallbackEXT> GLCV::make_shared_debug_report_callback()
 {
-    GLCV_CHECK(vkExtInitInstance(*instance_));
+    vk::Instance instance = GLCV::vkInstance();
+    GLCV_CHECK(vkExtInitInstance(instance));
 
     const auto debug_info = vk::DebugReportCallbackCreateInfoEXT()
                                 .setPNext(nullptr)
@@ -103,24 +134,27 @@ void GLCV::setup_debug_callback()
                                 .setPfnCallback(debug_callback)
                                 .setPUserData(nullptr);
 
-    auto instance = instance_;
-    debug_callback_
-        = std::shared_ptr<vk::DebugReportCallbackEXT>(new vk::DebugReportCallbackEXT(nullptr), [instance](auto p) {
-              if (*p) {
-                  instance->destroy(*p, nullptr);
-                  DEBUG_PRINT("Vulkan debug report callback destroyed");
-              }
-              delete p;
-          });
+    auto debug_report_callback = std::shared_ptr<vk::DebugReportCallbackEXT>(new vk::DebugReportCallbackEXT(nullptr));
+    //    auto debug_report_callback
+    //        = std::shared_ptr<vk::DebugReportCallbackEXT>(new vk::DebugReportCallbackEXT(nullptr), [instance](auto p) {
+    //              if (*p) {
+    //                  instance.destroy(*p, nullptr);
+    //                  DEBUG_PRINT("Vulkan debug report callback destroyed");
+    //              }
+    //              delete p;
+    //          });
 
-    GLCV_CHECK(instance_->createDebugReportCallbackEXT(&debug_info, nullptr, debug_callback_.get()));
+    GLCV_CHECK(instance.createDebugReportCallbackEXT(&debug_info, nullptr, debug_report_callback.get()));
     DEBUG_PRINT("Vulkan debug report callback created");
+    return debug_report_callback;
 }
 
-void GLCV::destroy()
+vk::Instance GLCV::vkInstance()
 {
-    GLCV::self().debug_callback_ = nullptr;
-    GLCV::self().instance_ = nullptr;
+    if (auto handle = GLCV::self().handle_.lock()) {
+        return *handle->instance_;
+    }
+    return nullptr;
 }
 
 //} // namespace glcv
