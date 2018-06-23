@@ -10,29 +10,29 @@
 
 namespace glcv {
 
-std::vector<VkExtensionProperties> get_available_extensions()
+std::vector<vk::ExtensionProperties> get_available_extensions()
 {
     uint32_t extension_count = 0;
-    GLCV_CHECK(vkEnumerateInstanceExtensionProperties(nullptr, &extension_count, nullptr));
+    GLCV_CHECK(vk::enumerateInstanceExtensionProperties(nullptr, &extension_count, nullptr));
 
-    std::vector<VkExtensionProperties> extensions(extension_count);
-    GLCV_CHECK(vkEnumerateInstanceExtensionProperties(nullptr, &extension_count, extensions.data()));
+    std::vector<vk::ExtensionProperties> extensions(extension_count);
+    GLCV_CHECK(vk::enumerateInstanceExtensionProperties(nullptr, &extension_count, extensions.data()));
     return extensions;
 }
 
-std::vector<VkLayerProperties> get_available_layers()
+std::vector<vk::LayerProperties> get_available_layers()
 {
     uint32_t layer_count = 0;
-    GLCV_CHECK(vkEnumerateInstanceLayerProperties(&layer_count, nullptr));
+    GLCV_CHECK(vk::enumerateInstanceLayerProperties(&layer_count, nullptr));
 
-    std::vector<VkLayerProperties> layers(layer_count);
-    GLCV_CHECK(vkEnumerateInstanceLayerProperties(&layer_count, layers.data()));
+    std::vector<vk::LayerProperties> layers(layer_count);
+    GLCV_CHECK(vk::enumerateInstanceLayerProperties(&layer_count, layers.data()));
     return layers;
 }
 
 void check_extension_support(const std::vector<const char *> &requested)
 {
-    const std::vector<VkExtensionProperties> available = get_available_extensions();
+    const std::vector<vk::ExtensionProperties> available = get_available_extensions();
     std::unordered_set<std::string> available_names(available.size());
 
     for (const auto &extension : available) {
@@ -48,7 +48,7 @@ void check_extension_support(const std::vector<const char *> &requested)
 
 void check_layer_support(const std::vector<const char *> &requested)
 {
-    const std::vector<VkLayerProperties> available = get_available_layers();
+    const std::vector<vk::LayerProperties> available = get_available_layers();
     std::unordered_set<std::string> available_names(available.size());
 
     for (const auto &layer : available) {
@@ -62,13 +62,13 @@ void check_layer_support(const std::vector<const char *> &requested)
     }
 }
 
-std::vector<VkPhysicalDevice> get_available_devices(VkInstance instance)
+std::vector<vk::PhysicalDevice> get_available_devices(vk::Instance instance)
 {
     uint32_t device_count = 0;
-    GLCV_CHECK(vkEnumeratePhysicalDevices(instance, &device_count, nullptr));
+    GLCV_CHECK(instance.enumeratePhysicalDevices(&device_count, nullptr));
 
-    std::vector<VkPhysicalDevice> devices(device_count);
-    GLCV_CHECK(vkEnumeratePhysicalDevices(instance, &device_count, devices.data()));
+    std::vector<vk::PhysicalDevice> devices(device_count);
+    GLCV_CHECK(instance.enumeratePhysicalDevices(&device_count, devices.data()));
     return devices;
 }
 

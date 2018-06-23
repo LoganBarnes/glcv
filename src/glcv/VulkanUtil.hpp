@@ -11,7 +11,7 @@ namespace glcv {
 
 // TODO: Figure out how to do this properly
 template <typename T, typename... Args>
-std::vector<T> enumerate(VkResult (*vkEnumerate)(Args..., uint32_t *, T *), Args... args)
+std::vector<T> enumerate(vk::Result (*vkEnumerate)(Args..., uint32_t *, T *), Args... args)
 {
     uint32_t count = 0;
     GLCV_CHECK(vkEnumerate(args..., &count, nullptr));
@@ -21,12 +21,12 @@ std::vector<T> enumerate(VkResult (*vkEnumerate)(Args..., uint32_t *, T *), Args
     return data;
 }
 
-std::vector<VkExtensionProperties> get_available_extensions();
-std::vector<VkLayerProperties> get_available_layers();
+std::vector<vk::ExtensionProperties> get_available_extensions();
+std::vector<vk::LayerProperties> get_available_layers();
 
 void check_extension_support(const std::vector<const char *> &requested_extensions);
 void check_layer_support(const std::vector<const char *> &requested_layers);
 
-std::vector<VkPhysicalDevice> get_available_devices(VkInstance instance);
+std::vector<vk::PhysicalDevice> get_available_devices(vk::Instance instance);
 
 } // namespace glcv

@@ -9,6 +9,7 @@
 #include <iostream>
 #include <algorithm>
 #include <glcv/util/vector_util.hpp>
+#include <glcv/detail/VulkanExt.hpp>
 
 //#define DEBUG_PRINT(msg) {}
 #define DEBUG_PRINT(msg) std::cout << "DEBUG: " << (msg) << std::endl
@@ -28,37 +29,6 @@ VKAPI_ATTR VkBool32 VKAPI_CALL debug_callback(VkDebugReportFlagsEXT /*flags*/,
     return VK_FALSE;
 }
 
-// The 'vkCreateDebugReportCallbackEXT' function has to be looked up explicitly since it is an extension.
-// This function handles the lookup process and calls the function if it exists.
-VkResult CreateDebugReportCallbackEXT(VkInstance instance,
-                                      const VkDebugReportCallbackCreateInfoEXT *pCreateInfo,
-                                      const VkAllocationCallbacks *pAllocator,
-                                      VkDebugReportCallbackEXT *pCallback)
-{
-    auto func = reinterpret_cast<PFN_vkCreateDebugReportCallbackEXT>(
-        vkGetInstanceProcAddr(instance, "vkCreateDebugReportCallbackEXT"));
-
-    if (func != nullptr) {
-        return func(instance, pCreateInfo, pAllocator, pCallback);
-    } else {
-        return VK_ERROR_EXTENSION_NOT_PRESENT;
-    }
-}
-
-// The 'vkDestroyDebugReportCallbackEXT' function has to be looked up explicitly since it is an extension.
-// This function handles the lookup process and calls the function if it exists.
-void DestroyDebugReportCallbackEXT(VkInstance instance,
-                                   VkDebugReportCallbackEXT callback,
-                                   const VkAllocationCallbacks *pAllocator)
-{
-    auto func = reinterpret_cast<PFN_vkDestroyDebugReportCallbackEXT>(
-        vkGetInstanceProcAddr(instance, "vkDestroyDebugReportCallbackEXT"));
-
-    if (func != nullptr) {
-        func(instance, callback, pAllocator);
-    }
-}
-
 } // namespace
 
 void GLCV::init(const std::string &app_name,
@@ -73,7 +43,7 @@ void GLCV::init(const std::string &app_name,
     }
 }
 
-std::vector<VkPhysicalDevice> GLCV::get_available_devices()
+std::vector<vk::PhysicalDevice> GLCV::get_available_devices()
 {
     auto &self = GLCV::self();
     return glcv::get_available_devices(*self.instance_);
@@ -95,56 +65,62 @@ void GLCV::create_instance(const std::string &app_name,
     glcv::check_extension_support(extension_names);
     glcv::check_layer_support(layer_names);
 
-    VkApplicationInfo app_info = {};
-    app_info.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
-    app_info.pNext = nullptr;
-    app_info.pApplicationName = app_name.c_str();
-    app_info.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
-    app_info.pEngineName = "No Engine";
-    app_info.engineVersion = VK_MAKE_VERSION(1, 0, 0);
-    app_info.apiVersion = VK_API_VERSION_1_0;
+    const auto app_info = vk::ApplicationInfo()
+                              .setPNext(nullptr)
+                              .setPApplicationName(app_name.c_str())
+                              .setApplicationVersion(VK_MAKE_VERSION(1, 0, 0))
+                              .setPEngineName("No Engine")
+                              .setEngineVersion(VK_MAKE_VERSION(1, 0, 0))
+                              .setApiVersion(VK_API_VERSION_1_0);
 
-    VkInstanceCreateInfo instance_info = {};
-    instance_info.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
-    instance_info.pNext = nullptr;
-    instance_info.flags = 0;
-    instance_info.pApplicationInfo = &app_info;
-    instance_info.enabledExtensionCount = static_cast<uint32_t>(extension_names.size());
-    instance_info.ppEnabledExtensionNames = (extension_names.empty() ? nullptr : extension_names.data());
-    instance_info.enabledLayerCount = static_cast<uint32_t>(layer_names.size());
-    instance_info.ppEnabledLayerNames = (layer_names.empty() ? nullptr : layer_names.data());
+    const auto instance_info = vk::InstanceCreateInfo()
+                                   .setPNext(nullptr)
+                                   .setPApplicationInfo(&app_info)
+                                   .setEnabledExtensionCount(static_cast<uint32_t>(extension_names.size()))
+                                   .setPpEnabledExtensionNames(extension_names.data())
+                                   .setEnabledLayerCount(static_cast<uint32_t>(layer_names.size()))
+                                   .setPpEnabledLayerNames(layer_names.data());
 
-    instance_ = std::shared_ptr<VkInstance>(new VkInstance(nullptr), [](auto p) {
+    instance_ = std::shared_ptr<vk::Instance>(new vk::Instance(nullptr), [](auto p) {
         if (*p) {
-            vkDestroyInstance(*p, nullptr);
+            p->destroy(nullptr);
             DEBUG_PRINT("Vulkan instance destroyed");
         }
         delete p;
     });
 
-    GLCV_CHECK(vkCreateInstance(&instance_info, nullptr, instance_.get()));
+    GLCV_CHECK(vk::createInstance(&instance_info, nullptr, instance_.get()));
     DEBUG_PRINT("Vulkan instance created");
 }
 
 void GLCV::setup_debug_callback()
 {
-    VkDebugReportCallbackCreateInfoEXT debug_info = {};
-    debug_info.sType = VK_STRUCTURE_TYPE_DEBUG_REPORT_CALLBACK_CREATE_INFO_EXT;
-    debug_info.pNext = nullptr;
-    debug_info.flags = VK_DEBUG_REPORT_ERROR_BIT_EXT | VK_DEBUG_REPORT_WARNING_BIT_EXT;
-    debug_info.pfnCallback = debug_callback;
-    debug_info.pUserData = nullptr;
+    GLCV_CHECK(vkExtInitInstance(*instance_));
 
-    debug_callback_ = std::shared_ptr<VkDebugReportCallbackEXT>(new VkDebugReportCallbackEXT(nullptr), [this](auto p) {
-        if (*p) {
-            DestroyDebugReportCallbackEXT(*instance_, *p, nullptr);
-            DEBUG_PRINT("Vulkan debug report callback destroyed");
-        }
-        delete p;
-    });
+    const auto debug_info = vk::DebugReportCallbackCreateInfoEXT()
+                                .setPNext(nullptr)
+                                .setFlags(vk::DebugReportFlagBitsEXT::eError | vk::DebugReportFlagBitsEXT::eWarning)
+                                .setPfnCallback(debug_callback)
+                                .setPUserData(nullptr);
 
-    GLCV_CHECK(CreateDebugReportCallbackEXT(*instance_, &debug_info, nullptr, debug_callback_.get()));
+    auto instance = instance_;
+    debug_callback_
+        = std::shared_ptr<vk::DebugReportCallbackEXT>(new vk::DebugReportCallbackEXT(nullptr), [instance](auto p) {
+              if (*p) {
+                  instance->destroy(*p, nullptr);
+                  DEBUG_PRINT("Vulkan debug report callback destroyed");
+              }
+              delete p;
+          });
+
+    GLCV_CHECK(instance_->createDebugReportCallbackEXT(&debug_info, nullptr, debug_callback_.get()));
     DEBUG_PRINT("Vulkan debug report callback created");
+}
+
+void GLCV::destroy()
+{
+    GLCV::self().debug_callback_ = nullptr;
+    GLCV::self().instance_ = nullptr;
 }
 
 //} // namespace glcv

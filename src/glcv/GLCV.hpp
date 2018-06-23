@@ -4,7 +4,7 @@
 // ////////////////////////////////////////////////////////////
 #pragma once
 
-#include <vulkan/vulkan.h>
+#include <vulkan/vulkan.hpp>
 #include <string>
 #include <memory>
 #include <vector>
@@ -17,7 +17,9 @@ public:
                      const std::vector<const char *> &layer_names = {},
                      bool set_debug_callback = false);
 
-    static std::vector<VkPhysicalDevice> get_available_devices();
+    static void destroy();
+
+    static std::vector<vk::PhysicalDevice> get_available_devices();
 
     GLCV(const GLCV &) = delete;
     GLCV(GLCV &&) noexcept = delete;
@@ -30,8 +32,8 @@ private:
 
     static GLCV &self();
 
-    std::shared_ptr<VkInstance> instance_;
-    std::shared_ptr<VkDebugReportCallbackEXT> debug_callback_;
+    std::shared_ptr<vk::Instance> instance_;
+    std::shared_ptr<vk::DebugReportCallbackEXT> debug_callback_;
 
     void create_instance(const std::string &app_name,
                          const std::vector<const char *> &extension_names,

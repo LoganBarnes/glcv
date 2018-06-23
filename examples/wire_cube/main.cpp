@@ -17,15 +17,18 @@ public:
     void render(int /*view_width*/, int /*view_height*/, float) const final {}
 
 private:
+    std::shared_ptr<bool> glcv_;
+
     void instance_init()
     {
-        bool debug = false;
         std::vector<const char *> requested_ext = get_required_extensions();
         std::vector<const char *> requested_layers = {};
 #ifndef NDEBUG
         requested_ext.emplace_back(VK_EXT_DEBUG_REPORT_EXTENSION_NAME);
         requested_layers.emplace_back("VK_LAYER_LUNARG_standard_validation");
-        debug = true;
+        bool debug = true;
+#else
+        bool debug = false;
 #endif
 
 #ifdef VERBOSE
@@ -39,11 +42,18 @@ private:
         util::print_vector("Requested layers:", requested_layers);
 #endif
 
+        glcv_ = std::shared_ptr<bool>(new bool(false), [](auto p) {
+            if (*p) {
+                GLCV::destroy();
+            }
+            delete p;
+        });
         GLCV::init("Example", requested_ext, requested_layers, debug);
+        *glcv_ = true;
 
-        VkPhysicalDeviceProperties device_props;
-        util::print_vector("Available devices:", GLCV::get_available_devices(), [&](auto &device) {
-            vkGetPhysicalDeviceProperties(device, &device_props);
+        vk::PhysicalDeviceProperties device_props;
+        util::print_vector("\nAvailable devices:", GLCV::get_available_devices(), [&](auto &device) {
+            device.getProperties(&device_props);
             return device_props.deviceName;
         });
     }
