@@ -68,7 +68,6 @@ std::string to_string(vk::Result &result)
     case vk::Result::eErrorNotPermittedEXT:
         return "ErrorNotPermittedEXT";
     }
-
     return "Unknown Error";
 }
 

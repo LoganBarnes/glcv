@@ -6,8 +6,9 @@
 
 #include <vulkan/vulkan.hpp>
 
-extern "C" {
+extern "C"
+{
 
-vk::Result vkExtInitInstance(vk::Instance instance);
+    vk::Result vkExtInitInstance(vk::Instance instance);
 
 } // extern "C"
