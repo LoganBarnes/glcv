@@ -6,6 +6,4 @@
 
 #include <glcv/GLCV.hpp>
 
-namespace glcv {
-
-} // namespace glcv
+namespace glcv {} // namespace glcv

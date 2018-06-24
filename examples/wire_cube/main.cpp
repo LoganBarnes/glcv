@@ -29,6 +29,7 @@ public:
 #endif
 
         glcv_ = glcv::make_glcv("Example", debug, get_required_extensions());
+        set_surface(glcv_);
 
 #ifdef VERBOSE
         vk::PhysicalDeviceProperties device_props;

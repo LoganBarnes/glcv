@@ -48,9 +48,27 @@ GLCV::GLCV(const std::string &app_name,
     init_device(layer_names);
 }
 
+void GLCV::set_surface(vk::SurfaceKHR surface)
+{
+    surface_ = nullptr;
+    surface_ = std::shared_ptr<vk::SurfaceKHR>(new vk::SurfaceKHR(surface), [this](auto *p) {
+        if (*p) {
+            instance_->destroy(*p);
+            DEBUG_PRINT("Surface destroyed");
+        }
+        delete p;
+    });
+    DEBUG_PRINT("Surface set");
+}
+
 const vk::Instance &GLCV::instance() const
 {
     return *instance_;
+}
+
+const vk::SurfaceKHR &GLCV::surface() const
+{
+    return *surface_;
 }
 
 const vk::PhysicalDevice &GLCV::physical_device() const

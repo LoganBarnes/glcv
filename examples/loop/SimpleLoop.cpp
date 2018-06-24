@@ -5,6 +5,8 @@
 #include "SimpleLoop.hpp"
 #include "glcv/GLCV.hpp"
 
+#include <glcv/GLCV.hpp>
+#include <glcv/ErrorCheck.hpp>
 #define GLFW_INCLUDE_NONE
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
@@ -17,8 +19,7 @@
 
 namespace examples {
 
-namespace {
-} // namespace
+namespace {} // namespace
 
 SimpleLoop::SimpleLoop(const std::string &title, int width, int height, bool resizable)
 {
@@ -33,6 +34,8 @@ SimpleLoop::SimpleLoop(const std::string &title, int width, int height, bool res
     resize(width, height);
 }
 
+SimpleLoop::~SimpleLoop() = default;
+
 std::vector<const char *> SimpleLoop::get_required_extensions() const
 {
     uint32_t count;
@@ -45,7 +48,12 @@ std::vector<const char *> SimpleLoop::get_required_extensions() const
     return extensions;
 }
 
-SimpleLoop::~SimpleLoop() = default;
+void SimpleLoop::set_surface(glcv::GLCV &glcv) const
+{
+    VkSurfaceKHR surface;
+    GLCV_CHECK(glfwCreateWindowSurface(static_cast<VkInstance>(glcv->instance()), window_.get(), nullptr, &surface));
+    glcv->set_surface(surface);
+}
 
 void SimpleLoop::run_loop()
 {
