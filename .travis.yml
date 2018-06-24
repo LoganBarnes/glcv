@@ -65,7 +65,10 @@ install:
   ############################################################################
   - |
     if [[ "${TRAVIS_OS_NAME}" == "linux" ]]; then
-      . ${TRAVIS_BUILD_DIR}/.ci/download_vulkan.sh ${DEPS_DIR}
+      . ${TRAVIS_BUILD_DIR}/.ci/download_vulkan_linux.sh ${DEPS_DIR}
+    else
+      brew install wget
+      . ${TRAVIS_BUILD_DIR}/.ci/download_vulkan_mac.sh ${DEPS_DIR}
     fi
 
 script:
