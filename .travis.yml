@@ -41,13 +41,7 @@ install:
   ############################################################################
   - |
     if [[ "${TRAVIS_OS_NAME}" == "linux" ]]; then
-      cd ${DEPS_DIR}
-      CMAKE_VERSION=3.11
-      CMAKE_URL="https://cmake.org/files/v$CMAKE_VERSION/cmake-$CMAKE_VERSION.0-Linux-x86_64.tar.gz"
-      mkdir cmake
-      travis_retry wget --no-check-certificate --quiet -O - ${CMAKE_URL}
-      tar cmake-$CMAKE_VERSION.0-Linux-x86_64.tar.gz --strip-components=1 -xz -C cmake
-      export PATH=${DEPS_DIR}/cmake/bin:${PATH}
+      . ${TRAVIS_BUILD_DIR}/.ci/download_cmake.sh ${DEPS_DIR}
     fi
   - cmake --version
 
@@ -57,10 +51,13 @@ install:
   - |
     if [[ "${TRAVIS_OS_NAME}" == "linux" ]]; then
       cd ${DEPS_DIR}
-      VULKAN_URL="https://vulkan.lunarg.com/sdk/download/1.1.73.0/linux/vulkansdk-linux-x86_64-1.1.73.0.run"
-      travis_retry wget --no-check-certificate --quiet -O vulkansdk-linux-x86_64-1.1.73.0.run ${VULKAN_URL}
-      sh vulkansdk-linux-x86_64-1.1.73.0.run
-      export VULKAN_SDK=${DEPS_DIR}/VulkanSDK/1.1.73.0/x86_64
+      VULKAN_VERSION=1.1.77.0
+      VULKAN_TAR_FILE="vulkansdk-linux-x86_64-$VULKAN_VERSION.tar.gz"
+      VULKAN_URL="https://vulkan.lunarg.com/sdk/download/$VULKAN_VERSION/linux/$VULKAN_TAR_FILE"
+      mkdir vulkan \
+      && travis_retry wget --no-check-certificate --quiet -O - ${VULKAN_URL} \
+      | tar --strip-components=1 -xz -C vulkan
+      export VULKAN_SDK=${DEPS_DIR}/vulkan/x86_64
     fi
 
 script:
