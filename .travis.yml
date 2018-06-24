@@ -7,7 +7,7 @@ branches:
 dist: trusty
 
 matrix:
-#  include:
+  include:
 #    - os: linux
 #      addons:
 #        apt:
