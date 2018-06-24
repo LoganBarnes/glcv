@@ -62,7 +62,8 @@ if (GLCV_USE_DEV_FLAGS)
                 -Wold-style-cast -Woverloaded-virtual -Wsign-conversion
                 -Wmissing-declarations -Wmissing-include-dirs -Wshadow)
     else ()
-        set(STRICT_FLAGS -Wall -WX)
+        set(STRICT_FLAGS -Wall -WX -experimental:external
+                -external:anglebrackets -external:W0)
     endif ()
 endif ()
 

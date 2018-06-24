@@ -3,7 +3,6 @@
 // Copyright (c) 2018. All rights reserved.
 // ////////////////////////////////////////////////////////////
 #include "loop/SimpleLoop.hpp"
-#include "loop/ExampleConfig.hpp"
 #include <iostream>
 
 class WireCube2 : public examples::SimpleLoop

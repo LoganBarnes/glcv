@@ -2,8 +2,8 @@
 // Created on 6/23/18.
 // Copyright (c) 2018. All rights reserved.
 // ////////////////////////////////////////////////////////////
-#include <iostream>
 #include "VulkanExt.hpp"
+#include <iostream>
 
 extern "C" {
 static PFN_vkCreateDebugReportCallbackEXT pfn_vkCreateDebugReportCallbackEXT;
@@ -39,7 +39,8 @@ void vkDebugReportMessageEXT(VkInstance instance,
 vk::Result vkExtInitInstance(vk::Instance instance)
 {
     pfn_vkCreateDebugReportCallbackEXT
-        = reinterpret_cast<PFN_vkCreateDebugReportCallbackEXT>(instance.getProcAddr("vkCreateDebugReportCallbackEXT"));
+        = reinterpret_cast<PFN_vkCreateDebugReportCallbackEXT>(
+        reinterpret_cast<void*>(instance.getProcAddr("vkCreateDebugReportCallbackEXT")));
 
     pfn_vkDestroyDebugReportCallbackEXT = reinterpret_cast<PFN_vkDestroyDebugReportCallbackEXT>(
         instance.getProcAddr("vkDestroyDebugReportCallbackEXT"));

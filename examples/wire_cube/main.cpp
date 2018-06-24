@@ -2,11 +2,9 @@
 // Graphics Library Classes Vulkan
 // Copyright (c) 2018. All rights reserved.
 // ////////////////////////////////////////////////////////////
-#include <glcv/detail/VulkanExt.hpp>
-#include <glcv/GLCV.hpp>
+#include "glcv/GLCV.hpp"
 #include "loop/SimpleLoop.hpp"
-#include <glcv/VulkanUtil.hpp>
-#include <glcv/util/vector_util.hpp>
+#include "glcv/util/vector_util.hpp"
 
 #ifndef NDEBUG
 constexpr bool debug = true;

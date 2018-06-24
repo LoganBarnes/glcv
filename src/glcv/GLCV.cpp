@@ -3,13 +3,12 @@
 // Copyright (c) 2018. All rights reserved.
 // ////////////////////////////////////////////////////////////
 #include "GLCV.hpp"
-#include "VulkanUtil.hpp"
 #include "ErrorCheck.hpp"
+#include "glcv/util/vector_util.hpp"
+#include "glcv/detail/VulkanExt.hpp"
 #include <stdexcept>
 #include <iostream>
 #include <algorithm>
-#include <glcv/util/vector_util.hpp>
-#include <glcv/detail/VulkanExt.hpp>
 
 //#define DEBUG_PRINT(msg) {}
 #define DEBUG_PRINT(msg) std::cout << "DEBUG: " << (msg) << std::endl
@@ -87,7 +86,7 @@ void GLCV::init_instance(const std::string &app_name,
                                    .setEnabledLayerCount(static_cast<uint32_t>(layer_names.size()))
                                    .setPpEnabledLayerNames(layer_names.data());
 
-    instance_ = std::shared_ptr<vk::Instance>(new vk::Instance(nullptr), [](auto p) {
+    instance_ = std::shared_ptr<vk::Instance>(new vk::Instance(nullptr), [](auto* p) {
         if (*p) {
             p->destroy(nullptr);
             DEBUG_PRINT("Vulkan instance destroyed");
@@ -111,7 +110,7 @@ void GLCV::init_debug_report_callback()
                                 .setPUserData(nullptr);
 
     debug_report_callback_
-        = std::shared_ptr<vk::DebugReportCallbackEXT>(new vk::DebugReportCallbackEXT(nullptr), [instance](auto p) {
+        = std::shared_ptr<vk::DebugReportCallbackEXT>(new vk::DebugReportCallbackEXT(nullptr), [instance](auto* p) {
               if (*p) {
                   instance.destroy(*p, nullptr);
                   DEBUG_PRINT("Vulkan debug report callback destroyed");
@@ -163,7 +162,7 @@ void GLCV::init_device(const std::vector<const char *> &layer_names)
                                  .setPpEnabledLayerNames(layer_names.data())
                                  .setPEnabledFeatures(nullptr);
 
-    device_ = std::shared_ptr<vk::Device>(new vk::Device(nullptr), [](auto p) {
+    device_ = std::shared_ptr<vk::Device>(new vk::Device(nullptr), [](auto* p) {
         if (*p) {
             p->destroy();
             DEBUG_PRINT("Vulkan device destroyed");

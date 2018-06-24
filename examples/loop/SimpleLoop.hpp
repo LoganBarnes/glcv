@@ -35,18 +35,20 @@ public:
     std::vector<const char *> get_required_extensions() const;
 
 protected:
-    bool paused_ = true;
     double time_step_ = 1.0 / 60.0; // 60 fps
     double sim_time_ = 0.0;
+    bool paused_ = true;
 
 private:
+    bool left_mouse_down_ = false;
+    bool padding_[6];
+
+    double prev_mouseX_ = 0.0;
+    double prev_mouseY_ = 0.0;
+
     std::shared_ptr<int> glfw_ = nullptr;
     std::shared_ptr<GLFWwindow> window_ = nullptr;
     std::shared_ptr<bool> imgui_ = nullptr;
-
-    bool left_mouse_down_ = false;
-    double prev_mouseX_ = 0.0;
-    double prev_mouseY_ = 0.0;
 
     void init_glfw();
     void create_window(const std::string &title, int width, int height, bool resizable);

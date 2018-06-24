@@ -3,8 +3,7 @@
 // Copyright (c) 2018. All rights reserved.
 // ////////////////////////////////////////////////////////////
 #include "SimpleLoop.hpp"
-
-#include <glcv/GLCV.hpp>
+#include "glcv/GLCV.hpp"
 
 #define GLFW_INCLUDE_NONE
 #define GLFW_INCLUDE_VULKAN
@@ -40,7 +39,7 @@ std::vector<const char *> SimpleLoop::get_required_extensions() const
     const char **glfw_extensions = glfwGetRequiredInstanceExtensions(&count);
 
     std::vector<const char *> extensions;
-    for (int i = 0; i < count; ++i) {
+    for (uint32_t i = 0; i < count; ++i) {
         extensions.emplace_back(glfw_extensions[i]);
     }
     return extensions;
@@ -88,7 +87,7 @@ void SimpleLoop::run_loop()
 
 void SimpleLoop::init_glfw()
 {
-    glfw_ = std::shared_ptr<int>(new int(glfwInit()), [](auto p) {
+    glfw_ = std::shared_ptr<int>(new int(glfwInit()), [](auto* p) {
         glfwTerminate();
         delete p;
     });
