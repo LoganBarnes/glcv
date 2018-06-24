@@ -28,16 +28,17 @@ public:
 private:
     std::shared_ptr<vk::Instance> instance_;
     std::shared_ptr<vk::DebugReportCallbackEXT> debug_report_callback_;
-    std::shared_ptr<vk::PhysicalDevice> physical_device_;
+    vk::PhysicalDevice physical_device_;
     std::shared_ptr<vk::Device> device_;
+    vk::Queue graphics_queue_; // make this a map of queues eventually
 
-    std::shared_ptr<vk::Instance> make_shared_instance(const std::string &app_name,
-                                                       const std::vector<const char *> &extension_names,
-                                                       const std::vector<const char *> &layer_names);
+    void init_instance(const std::string &app_name,
+                       const std::vector<const char *> &extension_names,
+                       const std::vector<const char *> &layer_names);
 
-    std::shared_ptr<vk::DebugReportCallbackEXT> make_shared_debug_report_callback();
-    std::shared_ptr<vk::PhysicalDevice> make_shared_physical_device();
-    std::shared_ptr<vk::Device> make_shared_device();
+    void init_debug_report_callback();
+    void init_physical_device();
+    void init_device(const std::vector<const char *> &layer_names);
 };
 
 } // namespace detail

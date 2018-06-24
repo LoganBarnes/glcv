@@ -40,14 +40,13 @@ GLCV::GLCV(const std::string &app_name,
            const std::vector<const char *> &layer_names,
            bool set_debug_callback)
 {
-    instance_ = make_shared_instance(app_name, extension_names, layer_names);
+    init_instance(app_name, extension_names, layer_names);
 
     if (set_debug_callback) {
-        debug_report_callback_ = make_shared_debug_report_callback();
+        init_debug_report_callback();
     }
-
-    physical_device_ = make_shared_physical_device();
-    device_ = make_shared_device();
+    init_physical_device();
+    init_device(layer_names);
 }
 
 const vk::Instance &GLCV::instance() const
@@ -57,7 +56,7 @@ const vk::Instance &GLCV::instance() const
 
 const vk::PhysicalDevice &GLCV::physical_device() const
 {
-    return *physical_device_;
+    return physical_device_;
 }
 
 const vk::Device &GLCV::device() const
@@ -65,9 +64,9 @@ const vk::Device &GLCV::device() const
     return *device_;
 }
 
-std::shared_ptr<vk::Instance> GLCV::make_shared_instance(const std::string &app_name,
-                                                         const std::vector<const char *> &extension_names,
-                                                         const std::vector<const char *> &layer_names)
+void GLCV::init_instance(const std::string &app_name,
+                         const std::vector<const char *> &extension_names,
+                         const std::vector<const char *> &layer_names)
 {
     glcv::check_extension_support(extension_names);
     glcv::check_layer_support(layer_names);
@@ -88,7 +87,7 @@ std::shared_ptr<vk::Instance> GLCV::make_shared_instance(const std::string &app_
                                    .setEnabledLayerCount(static_cast<uint32_t>(layer_names.size()))
                                    .setPpEnabledLayerNames(layer_names.data());
 
-    auto instance = std::shared_ptr<vk::Instance>(new vk::Instance(nullptr), [](auto p) {
+    instance_ = std::shared_ptr<vk::Instance>(new vk::Instance(nullptr), [](auto p) {
         if (*p) {
             p->destroy(nullptr);
             DEBUG_PRINT("Vulkan instance destroyed");
@@ -96,12 +95,11 @@ std::shared_ptr<vk::Instance> GLCV::make_shared_instance(const std::string &app_
         delete p;
     });
 
-    GLCV_CHECK(vk::createInstance(&instance_info, nullptr, instance.get()));
+    GLCV_CHECK(vk::createInstance(&instance_info, nullptr, instance_.get()));
     DEBUG_PRINT("Vulkan instance created");
-    return instance;
 }
 
-std::shared_ptr<vk::DebugReportCallbackEXT> GLCV::make_shared_debug_report_callback()
+void GLCV::init_debug_report_callback()
 {
     vk::Instance instance = *instance_;
     GLCV_CHECK(vkExtInitInstance(instance));
@@ -112,7 +110,7 @@ std::shared_ptr<vk::DebugReportCallbackEXT> GLCV::make_shared_debug_report_callb
                                 .setPfnCallback(debug_callback)
                                 .setPUserData(nullptr);
 
-    auto debug_report_callback
+    debug_report_callback_
         = std::shared_ptr<vk::DebugReportCallbackEXT>(new vk::DebugReportCallbackEXT(nullptr), [instance](auto p) {
               if (*p) {
                   instance.destroy(*p, nullptr);
@@ -121,12 +119,11 @@ std::shared_ptr<vk::DebugReportCallbackEXT> GLCV::make_shared_debug_report_callb
               delete p;
           });
 
-    GLCV_CHECK(instance.createDebugReportCallbackEXT(&debug_info, nullptr, debug_report_callback.get()));
+    GLCV_CHECK(instance.createDebugReportCallbackEXT(&debug_info, nullptr, debug_report_callback_.get()));
     DEBUG_PRINT("Vulkan debug report callback created");
-    return debug_report_callback;
 }
 
-std::shared_ptr<vk::PhysicalDevice> GLCV::make_shared_physical_device()
+void GLCV::init_physical_device()
 {
     std::vector<vk::PhysicalDevice> devices = instance_->enumeratePhysicalDevices();
 
@@ -134,12 +131,12 @@ std::shared_ptr<vk::PhysicalDevice> GLCV::make_shared_physical_device()
         throw std::runtime_error("GLCV ERROR: No suitable GPU found!");
     }
 
-    return std::make_shared<vk::PhysicalDevice>(devices.front());
+    physical_device_ = devices.front();
 }
 
-std::shared_ptr<vk::Device> GLCV::make_shared_device()
+void GLCV::init_device(const std::vector<const char *> &layer_names)
 {
-    std::vector<vk::QueueFamilyProperties> queue_props = physical_device_->getQueueFamilyProperties();
+    std::vector<vk::QueueFamilyProperties> queue_props = physical_device_.getQueueFamilyProperties();
 
     float queue_priorities = 0.f;
     auto queue_info
@@ -162,11 +159,11 @@ std::shared_ptr<vk::Device> GLCV::make_shared_device()
                                  .setPQueueCreateInfos(&queue_info)
                                  .setEnabledExtensionCount(0)
                                  .setPpEnabledExtensionNames(nullptr)
-                                 .setEnabledLayerCount(0)
-                                 .setPpEnabledLayerNames(nullptr)
+                                 .setEnabledLayerCount(static_cast<uint32_t>(layer_names.size()))
+                                 .setPpEnabledLayerNames(layer_names.data())
                                  .setPEnabledFeatures(nullptr);
 
-    auto device = std::shared_ptr<vk::Device>(new vk::Device(nullptr), [](auto p) {
+    device_ = std::shared_ptr<vk::Device>(new vk::Device(nullptr), [](auto p) {
         if (*p) {
             p->destroy();
             DEBUG_PRINT("Vulkan device destroyed");
@@ -174,10 +171,10 @@ std::shared_ptr<vk::Device> GLCV::make_shared_device()
         delete p;
     });
 
-    GLCV_CHECK(physical_device_->createDevice(&device_info, nullptr, device.get()));
+    GLCV_CHECK(physical_device_.createDevice(&device_info, nullptr, device_.get()));
     DEBUG_PRINT("Vulkan device created");
 
-    return device;
+    graphics_queue_ = device_->getQueue(queue_info.queueFamilyIndex, 0);
 }
 
 } // namespace detail
