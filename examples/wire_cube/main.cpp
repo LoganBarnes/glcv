@@ -8,6 +8,12 @@
 #include <glcv/VulkanUtil.hpp>
 #include <glcv/util/vector_util.hpp>
 
+#ifndef NDEBUG
+constexpr bool debug = true;
+#else
+constexpr bool debug = false;
+#endif
+
 #define VERBOSE
 
 class WireCube : public examples::SimpleLoop
@@ -15,43 +21,30 @@ class WireCube : public examples::SimpleLoop
 public:
     WireCube() : examples::SimpleLoop("Wire Cube Example")
     {
-        instance_init();
-        device_init();
+#ifdef VERBOSE
+        util::print_vector("Available extensions:", vk::enumerateInstanceExtensionProperties(), [](auto &ext) {
+            return ext.extensionName;
+        });
+        util::print_vector("Available layers:", vk::enumerateInstanceLayerProperties(), [](auto &layer) {
+            return layer.layerName;
+        });
+#endif
+
+        glcv_ = glcv::make_glcv("Example", debug, get_required_extensions());
+
+#ifdef VERBOSE
+        vk::PhysicalDeviceProperties device_props;
+        util::print_vector("\nAvailable devices:", glcv_->instance().enumeratePhysicalDevices(), [&](auto &device) {
+            device.getProperties(&device_props);
+            return device_props.deviceName;
+        });
+#endif
     }
 
     void render(int /*view_width*/, int /*view_height*/, float) const final {}
 
 private:
     glcv::GLCV glcv_;
-
-    void instance_init()
-    {
-#ifndef NDEBUG
-        bool debug = true;
-#else
-        bool debug = false;
-#endif
-
-#ifdef VERBOSE
-        util::print_vector("Available extensions:", glcv::get_available_extensions(), [](auto &ext) {
-            return ext.extensionName;
-        });
-        util::print_vector("Available layers:", glcv::get_available_layers(), [](auto &layer) {
-            return layer.layerName;
-        });
-#endif
-
-        glcv_ = glcv::make_glcv("Example", debug, get_required_extensions());
-    }
-
-    void device_init()
-    {
-        vk::PhysicalDeviceProperties device_props;
-        util::print_vector("\nAvailable devices:", glcv_->get_available_devices(), [&](auto &device) {
-            device.getProperties(&device_props);
-            return device_props.deviceName;
-        });
-    }
 };
 
 int main()

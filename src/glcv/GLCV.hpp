@@ -21,17 +21,20 @@ public:
          const std::vector<const char *> &layer_names,
          bool use_debug_callback);
 
-    std::vector<vk::PhysicalDevice> get_available_devices();
+    const vk::Instance &instance() const;
+    const vk::PhysicalDevice &physical_device() const;
 
 private:
     std::shared_ptr<vk::Instance> instance_;
     std::shared_ptr<vk::DebugReportCallbackEXT> debug_report_callback_;
+    std::shared_ptr<vk::PhysicalDevice> physical_device_;
 
     std::shared_ptr<vk::Instance> make_shared_instance(const std::string &app_name,
                                                        const std::vector<const char *> &extension_names,
                                                        const std::vector<const char *> &layer_names);
 
     std::shared_ptr<vk::DebugReportCallbackEXT> make_shared_debug_report_callback();
+    std::shared_ptr<vk::PhysicalDevice> make_shared_physical_device();
 };
 
 } // namespace detail

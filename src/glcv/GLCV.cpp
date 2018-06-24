@@ -45,11 +45,18 @@ GLCV::GLCV(const std::string &app_name,
     if (set_debug_callback) {
         debug_report_callback_ = make_shared_debug_report_callback();
     }
+
+    physical_device_ = make_shared_physical_device();
 }
 
-std::vector<vk::PhysicalDevice> GLCV::get_available_devices()
+const vk::Instance &GLCV::instance() const
 {
-    return glcv::get_available_devices(*instance_);
+    return *instance_;
+}
+
+const vk::PhysicalDevice &GLCV::physical_device() const
+{
+    return *physical_device_;
 }
 
 std::shared_ptr<vk::Instance> GLCV::make_shared_instance(const std::string &app_name,
@@ -111,6 +118,17 @@ std::shared_ptr<vk::DebugReportCallbackEXT> GLCV::make_shared_debug_report_callb
     GLCV_CHECK(instance.createDebugReportCallbackEXT(&debug_info, nullptr, debug_report_callback.get()));
     DEBUG_PRINT("Vulkan debug report callback created");
     return debug_report_callback;
+}
+
+std::shared_ptr<vk::PhysicalDevice> GLCV::make_shared_physical_device()
+{
+    std::vector<vk::PhysicalDevice> devices = instance_->enumeratePhysicalDevices();
+
+    if (devices.empty()) {
+        throw std::runtime_error("GLCV ERROR: No suitable GPU found!");
+    }
+
+    return std::make_shared<vk::PhysicalDevice>(devices.front());
 }
 
 } // namespace detail

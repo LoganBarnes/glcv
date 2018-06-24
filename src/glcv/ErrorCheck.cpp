@@ -3,6 +3,7 @@
 // Copyright (c) 2018. All rights reserved.
 // ////////////////////////////////////////////////////////////
 #include "ErrorCheck.hpp"
+#include <unordered_set>
 
 namespace glcv {
 
@@ -69,6 +70,38 @@ std::string to_string(vk::Result &result)
         return "ErrorNotPermittedEXT";
     }
     return "Unknown Error";
+}
+
+void check_extension_support(const std::vector<const char *> &requested)
+{
+    const std::vector<vk::ExtensionProperties> available = vk::enumerateInstanceExtensionProperties();
+    std::unordered_set<std::string> available_names(available.size());
+
+    for (const auto &extension : available) {
+        available_names.emplace(extension.extensionName);
+    }
+
+    for (const auto &extension : requested) {
+        if (available_names.find(extension) == available_names.end()) {
+            throw std::runtime_error("Extension '" + std::string(extension) + "' NOT SUPPORTED");
+        }
+    }
+}
+
+void check_layer_support(const std::vector<const char *> &requested)
+{
+    const std::vector<vk::LayerProperties> available = vk::enumerateInstanceLayerProperties();
+    std::unordered_set<std::string> available_names(available.size());
+
+    for (const auto &layer : available) {
+        available_names.emplace(layer.layerName);
+    }
+
+    for (const auto &layer : requested) {
+        if (available_names.find(layer) == available_names.end()) {
+            throw std::runtime_error("Layer '" + std::string(layer) + "' NOT SUPPORTED");
+        }
+    }
 }
 
 } // namespace glcv
