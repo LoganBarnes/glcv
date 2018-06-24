@@ -20,7 +20,10 @@ matrix:
 platform: x64
 
 environment:
-  VULKAN_SDK: C:\VulkanSDK\1.1.77.0
+  VULKAN_SDK: c:\VulkanSDK\1.1.77.0
+
+cache:
+  - c:\VulkanSDK
 
 build:
   parallel: true # enable MSBuild parallel builds
@@ -47,7 +50,8 @@ install:
   # Install Vulkan
   ############################################################################
   - curl --silent --show-error --output VulkanSDK.exe https://vulkan.lunarg.com/sdk/download/1.1.77.0/windows/VulkanSDK-1.1.77.0-Installer.exe
-  - .\VulkanSDK.exe /S
+  - .\VulkanSDK.exe
+  - set VULKAN_SDK=C:\VulkanSDK\1.1.77.0
 
 before_build:
   - call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvars64.bat"
