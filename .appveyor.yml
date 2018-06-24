@@ -5,7 +5,7 @@ branches:
   - master
 
 skip_tags: true
-clone_folder: c:\projects\airwaves
+clone_folder: c:\projects\glcv
 
 image:
   - Visual Studio 2017
@@ -18,6 +18,9 @@ matrix:
   fast_finish: true
 
 platform: x64
+
+environment:
+  VULKAN_SDK: C:\VulkanSDK\1.1.77.0
 
 build:
   parallel: true # enable MSBuild parallel builds
@@ -33,30 +36,36 @@ install:
   ############################################################################
   # Install a recent CMake
   ############################################################################
-  - set CMAKE_URL="https://cmake.org/files/v3.9/cmake-3.9.6-win64-x64.zip"
+  - set CMAKE_URL="https://cmake.org/files/v3.11/cmake-3.11.0-win64-x64.zip"
   - appveyor DownloadFile %CMAKE_URL% -FileName cmake.zip
   - 7z x cmake.zip -oC:\projects\deps > nul
   - move C:\projects\deps\cmake-* C:\projects\deps\cmake # Move to a version-agnostic directory
   - set PATH=C:\projects\deps\cmake\bin;%PATH%
   - cmake --version
 
+  ############################################################################
+  # Install Vulkan
+  ############################################################################
+  - curl --silent --show-error --output VulkanSDK.exe https://vulkan.lunarg.com/sdk/download/1.1.77.0/windows/VulkanSDK-1.1.77.0-Installer.exe
+  - .\VulkanSDK.exe /S
+
 before_build:
   - call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvars64.bat"
-  - cd C:\projects\airwaves
+  - cd C:\projects\glcv
 
 build_script:
   - mkdir build
   - cd build
   - cmake ^
       -DCMAKE_BUILD_TYPE=%CONFIGURATION% ^
-      -DVMP_BUILD_TESTS=ON ^
-      -DVMP_BUILD_GL_TESTS=OFF ^
-      -DVMP_USE_DEV_FLAGS=ON ^
+      -DGLCV_BUILD_TESTS=ON ^
+      -DGLCV_BUILD_EXAMPLES=OFF ^
+      -DGLCV_USE_DEV_FLAGS=ON ^
       ..
   - cmake --build . --config %CONFIGURATION% -- /m
 
-test_script:
-  - ctest -C %CONFIGURATION%
+#test_script:
+#  - ctest -C %CONFIGURATION%
 
 notifications:
   - provider: Email
