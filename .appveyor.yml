@@ -46,9 +46,10 @@ install:
   ############################################################################
   # Install Vulkan
   ############################################################################
+#  - curl --silent --show-error --output VulkanSDK.exe https://vulkan.lunarg.com/sdk/download/1.1.77.0/windows/VulkanSDK-1.1.77.0-Installer.exe
   - set VULKAN_URL="https://vulkan.lunarg.com/sdk/download/1.1.77.0/windows/VulkanSDK-1.1.77.0-Installer.exe"
   - appveyor DownloadFile %VULKAN_URL% -FileName VulkanSDK.exe
-  - .\VulkanSDK.exe
+  - .\VulkanSDK.exe /S
   - set VULKAN_SDK=c:\VulkanSDK\1.1.77.0
 
 before_build:
