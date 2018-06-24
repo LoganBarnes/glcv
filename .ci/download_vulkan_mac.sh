@@ -6,5 +6,5 @@ VULKAN_URL="https://vulkan.lunarg.com/sdk/download/$VULKAN_VERSION/mac/$VULKAN_T
 mkdir vulkan \
 && travis_retry wget --no-check-certificate --quiet -O - ${VULKAN_URL} \
 | tar --strip-components=1 -xz -C vulkan
-#export VULKAN_SDK=$1/vulkan/macOS
+export VULKAN_SDK=$1/vulkan/macOS
 popd
