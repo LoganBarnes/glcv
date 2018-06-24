@@ -87,7 +87,7 @@ void SimpleLoop::run_loop()
 
 void SimpleLoop::init_glfw()
 {
-    glfw_ = std::shared_ptr<int>(new int(glfwInit()), [](auto* p) {
+    glfw_ = std::shared_ptr<int>(new int(glfwInit()), [](auto *p) {
         glfwTerminate();
         delete p;
     });

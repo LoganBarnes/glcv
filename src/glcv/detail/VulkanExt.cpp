@@ -5,38 +5,34 @@
 #include "VulkanExt.hpp"
 #include <iostream>
 
-extern "C"
-{
+extern "C" {
 
 static PFN_vkCreateDebugReportCallbackEXT pfn_vkCreateDebugReportCallbackEXT;
-VKAPI_ATTR VkResult VKAPI_CALL vkCreateDebugReportCallbackEXT(
-    VkInstance                                  instance,
-    const VkDebugReportCallbackCreateInfoEXT*   pCreateInfo,
-    const VkAllocationCallbacks*                pAllocator,
-    VkDebugReportCallbackEXT*                   pCallback)
+VKAPI_ATTR VkResult VKAPI_CALL vkCreateDebugReportCallbackEXT(VkInstance instance,
+                                                              const VkDebugReportCallbackCreateInfoEXT *pCreateInfo,
+                                                              const VkAllocationCallbacks *pAllocator,
+                                                              VkDebugReportCallbackEXT *pCallback)
 {
     return pfn_vkCreateDebugReportCallbackEXT(instance, pCreateInfo, pAllocator, pCallback);
 }
 
 static PFN_vkDestroyDebugReportCallbackEXT pfn_vkDestroyDebugReportCallbackEXT;
-VKAPI_ATTR void VKAPI_CALL vkDestroyDebugReportCallbackEXT(
-    VkInstance                                  instance,
-    VkDebugReportCallbackEXT                    callback,
-    const VkAllocationCallbacks*                pAllocator)
+VKAPI_ATTR void VKAPI_CALL vkDestroyDebugReportCallbackEXT(VkInstance instance,
+                                                           VkDebugReportCallbackEXT callback,
+                                                           const VkAllocationCallbacks *pAllocator)
 {
     pfn_vkDestroyDebugReportCallbackEXT(instance, callback, pAllocator);
 }
 
 static PFN_vkDebugReportMessageEXT pfn_vkDebugReportMessageEXT;
-VKAPI_ATTR void VKAPI_CALL vkDebugReportMessageEXT(
-    VkInstance                                  instance,
-    VkDebugReportFlagsEXT                       flags,
-    VkDebugReportObjectTypeEXT                  objectType,
-    uint64_t                                    object,
-    size_t                                      location,
-    int32_t                                     messageCode,
-    const char*                                 pLayerPrefix,
-    const char*                                 pMessage)
+VKAPI_ATTR void VKAPI_CALL vkDebugReportMessageEXT(VkInstance instance,
+                                                   VkDebugReportFlagsEXT flags,
+                                                   VkDebugReportObjectTypeEXT objectType,
+                                                   uint64_t object,
+                                                   size_t location,
+                                                   int32_t messageCode,
+                                                   const char *pLayerPrefix,
+                                                   const char *pMessage)
 {
     pfn_vkDebugReportMessageEXT(instance, flags, objectType, object, location, messageCode, pLayerPrefix, pMessage);
 }
@@ -60,4 +56,3 @@ vk::Result vkExtInitInstance(vk::Instance instance)
 }
 
 } // extern "C"
-
