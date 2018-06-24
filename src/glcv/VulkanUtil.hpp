@@ -4,7 +4,7 @@
 // ////////////////////////////////////////////////////////////
 #pragma once
 
-#include "glcv/GLCV.hpp"
+#include <glcv/GLCV.hpp>
 
 namespace glcv {
 
