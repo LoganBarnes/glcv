@@ -47,6 +47,7 @@ GLCV::GLCV(const std::string &app_name,
     }
 
     physical_device_ = make_shared_physical_device();
+    device_ = make_shared_device();
 }
 
 const vk::Instance &GLCV::instance() const
@@ -57,6 +58,11 @@ const vk::Instance &GLCV::instance() const
 const vk::PhysicalDevice &GLCV::physical_device() const
 {
     return *physical_device_;
+}
+
+const vk::Device &GLCV::device() const
+{
+    return *device_;
 }
 
 std::shared_ptr<vk::Instance> GLCV::make_shared_instance(const std::string &app_name,
@@ -129,6 +135,49 @@ std::shared_ptr<vk::PhysicalDevice> GLCV::make_shared_physical_device()
     }
 
     return std::make_shared<vk::PhysicalDevice>(devices.front());
+}
+
+std::shared_ptr<vk::Device> GLCV::make_shared_device()
+{
+    std::vector<vk::QueueFamilyProperties> queue_props = physical_device_->getQueueFamilyProperties();
+
+    float queue_priorities = 0.f;
+    auto queue_info
+        = vk::DeviceQueueCreateInfo().setPNext(nullptr).setQueueCount(0).setPQueuePriorities(&queue_priorities);
+
+    for (unsigned i = 0; i < queue_props.size(); i++) {
+        if (queue_props[i].queueCount > 0 && (queue_props[i].queueFlags & vk::QueueFlagBits::eGraphics)) {
+            queue_info.setQueueCount(1).setQueueFamilyIndex(i);
+            break;
+        }
+    }
+
+    if (queue_info.queueCount == 0) {
+        throw std::runtime_error("GLCV ERROR: Failed to find graphics queue for device");
+    }
+
+    const auto device_info = vk::DeviceCreateInfo()
+                                 .setPNext(nullptr)
+                                 .setQueueCreateInfoCount(1)
+                                 .setPQueueCreateInfos(&queue_info)
+                                 .setEnabledExtensionCount(0)
+                                 .setPpEnabledExtensionNames(nullptr)
+                                 .setEnabledLayerCount(0)
+                                 .setPpEnabledLayerNames(nullptr)
+                                 .setPEnabledFeatures(nullptr);
+
+    auto device = std::shared_ptr<vk::Device>(new vk::Device(nullptr), [](auto p) {
+        if (*p) {
+            p->destroy();
+            DEBUG_PRINT("Vulkan device destroyed");
+        }
+        delete p;
+    });
+
+    GLCV_CHECK(physical_device_->createDevice(&device_info, nullptr, device.get()));
+    DEBUG_PRINT("Vulkan device created");
+
+    return device;
 }
 
 } // namespace detail

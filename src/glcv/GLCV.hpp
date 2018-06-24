@@ -23,11 +23,13 @@ public:
 
     const vk::Instance &instance() const;
     const vk::PhysicalDevice &physical_device() const;
+    const vk::Device &device() const;
 
 private:
     std::shared_ptr<vk::Instance> instance_;
     std::shared_ptr<vk::DebugReportCallbackEXT> debug_report_callback_;
     std::shared_ptr<vk::PhysicalDevice> physical_device_;
+    std::shared_ptr<vk::Device> device_;
 
     std::shared_ptr<vk::Instance> make_shared_instance(const std::string &app_name,
                                                        const std::vector<const char *> &extension_names,
@@ -35,6 +37,7 @@ private:
 
     std::shared_ptr<vk::DebugReportCallbackEXT> make_shared_debug_report_callback();
     std::shared_ptr<vk::PhysicalDevice> make_shared_physical_device();
+    std::shared_ptr<vk::Device> make_shared_device();
 };
 
 } // namespace detail
