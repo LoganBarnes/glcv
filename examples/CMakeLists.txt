@@ -75,7 +75,7 @@ function(add_example example_dir)
     set(exec_name example_${example_dir})
     add_executable(${exec_name} ${example_dir}/main.cpp)
     target_link_libraries(${exec_name} example_loop)
-    target_compile_options(${exec_name} PRIVATE ${STRICT_FLAGS})
+    target_compile_options(${exec_name} PRIVATE ${SYSTEM_FLAGS} ${STRICT_FLAGS})
 endfunction()
 
 add_example(wire_cube)

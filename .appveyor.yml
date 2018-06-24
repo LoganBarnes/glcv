@@ -46,7 +46,6 @@ install:
   ############################################################################
   # Install Vulkan
   ############################################################################
-#  - curl --silent --show-error --output VulkanSDK.exe https://vulkan.lunarg.com/sdk/download/1.1.77.0/windows/VulkanSDK-1.1.77.0-Installer.exe
   - set VULKAN_URL="https://vulkan.lunarg.com/sdk/download/1.1.77.0/windows/VulkanSDK-1.1.77.0-Installer.exe"
   - appveyor DownloadFile %VULKAN_URL% -FileName VulkanSDK.exe
   - .\VulkanSDK.exe /S
@@ -60,7 +59,6 @@ build_script:
   - mkdir build
   - cd build
   - cmake ^
-      -DCMAKE_BUILD_TYPE=%CONFIGURATION% ^
       -DGLCV_BUILD_TESTS=ON ^
       -DGLCV_BUILD_EXAMPLES=OFF ^
       -DGLCV_USE_DEV_FLAGS=ON ^

@@ -56,19 +56,19 @@ target_link_libraries(glcv-thirdparty INTERFACE Vulkan::Vulkan)
 #############################
 ### Project Configuration ###
 #############################
+if (MSVC)
+    add_definitions(-DNOMINMAX -D_CRT_SECURE_NO_WARNINGS) # silly microsoft
+    set(SYSTEM_FLAGS /experimental:external /external:anglebrackets /external:W0)
+endif ()
+
 if (GLCV_USE_DEV_FLAGS)
     if (NOT MSVC)
         set(STRICT_FLAGS -Wall -Wextra -Werror -Wpedantic -Winit-self
                 -Wold-style-cast -Woverloaded-virtual -Wsign-conversion
                 -Wmissing-declarations -Wmissing-include-dirs -Wshadow)
     else ()
-        set(STRICT_FLAGS -Wall -WX -experimental:external
-                -external:anglebrackets -external:W0)
+        set(STRICT_FLAGS /W4 /WX)
     endif ()
-endif ()
-
-if (MSVC)
-    add_definitions(-DNOMINMAX -D_CRT_SECURE_NO_WARNINGS) # silly microsoft
 endif ()
 
 ###############################
@@ -91,7 +91,7 @@ set(GLCV_SOURCE
 add_library(glcv ${GLCV_SOURCE})
 target_include_directories(glcv PUBLIC src)
 target_link_libraries(glcv glcv-thirdparty)
-target_compile_options(glcv PRIVATE ${STRICT_FLAGS})
+target_compile_options(glcv PRIVATE ${SYSTEM_FLAGS} ${STRICT_FLAGS})
 
 if (${GLCV_BUILD_EXAMPLES})
     add_subdirectory(examples)

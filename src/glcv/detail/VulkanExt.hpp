@@ -6,8 +6,19 @@
 
 #include <vulkan/vulkan.hpp>
 
-extern "C" {
-
+extern "C"
+{
 vk::Result vkExtInitInstance(vk::Instance instance);
 
-} // extern "C"
+}
+
+//namespace glcv {
+//namespace ext {
+
+//VkResult createDebugReportCallbackEXT(vk::Instance instance,
+//                                      const VkDebugReportCallbackCreateInfoEXT *pCreateInfo,
+//                                      const VkAllocationCallbacks *pAllocator,
+//                                      VkDebugReportCallbackEXT *pCallback);
+
+//} // namespace glcv
+//} // namespace ext
