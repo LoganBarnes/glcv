@@ -8,23 +8,23 @@ dist: trusty
 
 matrix:
   include:
-#    - os: linux
-#      addons:
-#        apt:
-#          sources:
-#            - ubuntu-toolchain-r-test
-#          packages:
-#            - g++-7
-#            - mesa-utils
-#            - xorg-dev
-#            - libx11-xcb-dev
-#            - libxkbcommon-dev
-#            - libmirclient-dev
-#            - libwayland-dev
-#            - libxrandr-dev
-#            - lcov
-#      env:
-#        - MATRIX_EVAL="CC=gcc-7 && CXX=g++-7"
+    - os: linux
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+          packages:
+            - g++-7
+            - mesa-utils
+            - xorg-dev
+            - libx11-xcb-dev
+            - libxkbcommon-dev
+            - libmirclient-dev
+            - libwayland-dev
+            - libxrandr-dev
+            - lcov
+      env:
+        - MATRIX_EVAL="CC=gcc-7 && CXX=g++-7"
 
     - os: osx
       osx_image: xcode9.4
