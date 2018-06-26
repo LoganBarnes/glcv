@@ -8,4 +8,5 @@
 #include <string>
 #include <unordered_set>
 
-namespace glcv {} // namespace glcv
+namespace glcv {
+} // namespace glcv

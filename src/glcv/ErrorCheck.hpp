@@ -4,7 +4,7 @@
 // ////////////////////////////////////////////////////////////
 #pragma once
 
-#include <glcv/GLCV.hpp>
+#include <vulkan/vulkan.hpp>
 
 #define GLCV_CHECK(func)                                                                                               \
     {                                                                                                                  \
