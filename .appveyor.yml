@@ -60,7 +60,7 @@ build_script:
   - cd build
   - cmake ^
       -DGLCV_BUILD_TESTS=ON ^
-      -DGLCV_BUILD_EXAMPLES=OFF ^
+      -DGLCV_BUILD_EXAMPLES=ON ^
       -DGLCV_USE_DEV_FLAGS=ON ^
       ..
   - cmake --build . --config %CONFIGURATION% -- /m
