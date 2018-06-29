@@ -6,7 +6,6 @@
 
 #include <glcv/GLCV.hpp>
 
-extern "C"
-{
+extern "C" {
 vk::Result vkExtInitInstance(vk::Instance instance);
 }

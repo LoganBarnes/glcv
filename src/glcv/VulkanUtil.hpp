@@ -7,5 +7,4 @@
 #include <glcv/GLCV.hpp>
 
 namespace glcv {
-
 } // namespace glcv

@@ -82,8 +82,9 @@ set(GLCV_SOURCE
         src/glcv/ErrorCheck.hpp
         src/glcv/GLCV.cpp
         src/glcv/GLCV.hpp
-        src/glcv/VulkanUtil.cpp
-        src/glcv/VulkanUtil.hpp
+        src/glcv/GLCVForwardDeclarations.hpp
+#        src/glcv/VulkanUtil.cpp
+#        src/glcv/VulkanUtil.hpp
 
         src/glcv/util/vector_util.hpp
         )

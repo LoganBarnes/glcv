@@ -9,5 +9,4 @@
 #include <unordered_set>
 
 namespace glcv {
-
 } // namespace glcv

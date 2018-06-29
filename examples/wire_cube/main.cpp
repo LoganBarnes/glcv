@@ -6,6 +6,10 @@
 #include "glcv/GLCV.hpp"
 #include "glcv/util/vector_util.hpp"
 
+#define GLFW_INCLUDE_NONE
+#define GLFW_INCLUDE_VULKAN
+#include <GLFW/glfw3.h>
+
 #ifndef NDEBUG
 constexpr bool debug = true;
 #else
@@ -28,7 +32,11 @@ public:
         });
 #endif
 
-        glcv_ = glcv::make_glcv("Example", debug, get_required_extensions());
+        auto surf_func = [&](VkInstance instance, VkSurfaceKHR *surface) {
+            return glfwCreateWindowSurface(instance, get_window(), nullptr, surface);
+        };
+        glcv_ = glcv::make_glcv("Example", debug, get_required_extensions(), {}, surf_func);
+        // glcv_ = glcv::make_glcv("Example", debug, get_required_extensions());
 
 #ifdef VERBOSE
         vk::PhysicalDeviceProperties device_props;
@@ -39,10 +47,22 @@ public:
 #endif
     }
 
+    void update(float /*sim_time*/, float /*time_step*/) final
+    {
+        if (!glcv_->surface()) {
+            --counter_;
+        }
+
+        if (counter_ == 0) {
+            glfwSetWindowShouldClose(get_window(), GLFW_TRUE);
+        }
+    }
+
     void render(int /*view_width*/, int /*view_height*/, float) const final {}
 
 private:
     glcv::GLCV glcv_;
+    unsigned counter_ = 10000000;
 };
 
 int main()

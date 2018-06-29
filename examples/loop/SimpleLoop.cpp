@@ -5,6 +5,8 @@
 #include "SimpleLoop.hpp"
 #include "glcv/GLCV.hpp"
 
+#include <glcv/GLCV.hpp>
+#include <glcv/ErrorCheck.hpp>
 #define GLFW_INCLUDE_NONE
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
@@ -33,6 +35,8 @@ SimpleLoop::SimpleLoop(const std::string &title, int width, int height, bool res
     resize(width, height);
 }
 
+SimpleLoop::~SimpleLoop() = default;
+
 std::vector<const char *> SimpleLoop::get_required_extensions() const
 {
     uint32_t count;
@@ -45,7 +49,10 @@ std::vector<const char *> SimpleLoop::get_required_extensions() const
     return extensions;
 }
 
-SimpleLoop::~SimpleLoop() = default;
+GLFWwindow *SimpleLoop::get_window() const
+{
+    return window_.get();
+}
 
 void SimpleLoop::run_loop()
 {
@@ -72,22 +79,22 @@ void SimpleLoop::run_loop()
         const double alpha = accumulator / time_step_;
 
         int w, h;
-        glfwGetFramebufferSize(window_.get(), &w, &h);
+        glfwGetFramebufferSize(get_window(), &w, &h);
         render(w, h, static_cast<float>(alpha));
 
-        //        glfwSwapBuffers(window_.get());
+        //        glfwSwapBuffers(get_window());
 
         if (paused_) {
             glfwWaitEvents();
         } else {
             glfwPollEvents();
         }
-    } while (!glfwWindowShouldClose(window_.get()));
+    } while (!glfwWindowShouldClose(get_window()));
 }
 
 void SimpleLoop::init_glfw()
 {
-    glfw_ = std::shared_ptr<int>(new int(glfwInit()), [](auto* p) {
+    glfw_ = std::shared_ptr<int>(new int(glfwInit()), [](auto *p) {
         glfwTerminate();
         delete p;
     });
@@ -127,7 +134,7 @@ void SimpleLoop::create_window(const std::string &title, int width, int height, 
     //    init_data.descriptor_pool = g_DescriptorPool;
     //    init_data.check_vk_result = check_vk_result;
 
-    //    imgui_ = std::shared_ptr<bool>(new bool(ImGui_ImplGlfwVulkan_Init(window_.get(), true, &init_data)), [](auto p) {
+    //    imgui_ = std::shared_ptr<bool>(new bool(ImGui_ImplGlfwVulkan_Init(get_window(), true, &init_data)), [](auto p) {
     //        ImGui_ImplGlfwVulkan_Shutdown();
     //        ImGui::DestroyContext();
     //        delete p;
@@ -136,13 +143,14 @@ void SimpleLoop::create_window(const std::string &title, int width, int height, 
 
 void SimpleLoop::set_callbacks()
 {
-    glfwSetWindowUserPointer(window_.get(), this);
+    GLFWwindow *glfw_window = get_window();
+    glfwSetWindowUserPointer(glfw_window, this);
 
-    //    glfwSetFramebufferSizeCallback(window_.get(), [](GLFWwindow *window, int width, int height) {
+    //    glfwSetFramebufferSizeCallback(glfw_window, [](GLFWwindow *window, int width, int height) {
     //        static_cast<SimpleLoop *>(glfwGetWindowUserPointer(window))->resize(width, height);
     //    });
 
-    glfwSetMouseButtonCallback(window_.get(), [](GLFWwindow *window, int button, int action, int) {
+    glfwSetMouseButtonCallback(glfw_window, [](GLFWwindow *window, int button, int action, int) {
         auto simple_loop = static_cast<SimpleLoop *>(glfwGetWindowUserPointer(window));
         if (button == GLFW_MOUSE_BUTTON_1) {
             if (action == GLFW_PRESS) {
@@ -154,7 +162,7 @@ void SimpleLoop::set_callbacks()
         }
     });
 
-    glfwSetKeyCallback(window_.get(), [](GLFWwindow *window, int key, int, int action, int) {
+    glfwSetKeyCallback(glfw_window, [](GLFWwindow *window, int key, int, int action, int) {
         auto simple_loop = static_cast<SimpleLoop *>(glfwGetWindowUserPointer(window));
         if (key == GLFW_KEY_ESCAPE && action == GLFW_RELEASE) {
             glfwSetWindowShouldClose(window, GLFW_TRUE);
@@ -164,7 +172,7 @@ void SimpleLoop::set_callbacks()
         }
     });
 
-    glfwSetCursorPosCallback(window_.get(), [](GLFWwindow *window, double xpos, double ypos) {
+    glfwSetCursorPosCallback(glfw_window, [](GLFWwindow *window, double xpos, double ypos) {
         auto simple_loop = static_cast<SimpleLoop *>(glfwGetWindowUserPointer(window));
         if (simple_loop->left_mouse_down_) {
             simple_loop->handle_mouse_drag(static_cast<float>(xpos - simple_loop->prev_mouseX_),
@@ -174,7 +182,7 @@ void SimpleLoop::set_callbacks()
         }
     });
 
-    glfwSetScrollCallback(window_.get(), [](GLFWwindow *window, double, double yoffset) {
+    glfwSetScrollCallback(glfw_window, [](GLFWwindow *window, double, double yoffset) {
         static_cast<SimpleLoop *>(glfwGetWindowUserPointer(window))->handle_scroll(static_cast<float>(yoffset));
     });
 }

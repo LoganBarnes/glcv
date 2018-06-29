@@ -9,6 +9,7 @@
 #include <stdexcept>
 #include <iostream>
 #include <algorithm>
+#include <unordered_set>
 
 //#define DEBUG_PRINT(msg) {}
 #define DEBUG_PRINT(msg) std::cout << "DEBUG: " << (msg) << std::endl
@@ -34,23 +35,14 @@ namespace glcv {
 
 namespace detail {
 
-GLCV::GLCV(const std::string &app_name,
-           const std::vector<const char *> &extension_names,
-           const std::vector<const char *> &layer_names,
-           bool set_debug_callback)
-{
-    init_instance(app_name, extension_names, layer_names);
-
-    if (set_debug_callback) {
-        init_debug_report_callback();
-    }
-    init_physical_device();
-    init_device(layer_names);
-}
-
 const vk::Instance &GLCV::instance() const
 {
     return *instance_;
+}
+
+const vk::SurfaceKHR &GLCV::surface() const
+{
+    return *surface_;
 }
 
 const vk::PhysicalDevice &GLCV::physical_device() const
@@ -86,7 +78,7 @@ void GLCV::init_instance(const std::string &app_name,
                                    .setEnabledLayerCount(static_cast<uint32_t>(layer_names.size()))
                                    .setPpEnabledLayerNames(layer_names.data());
 
-    instance_ = std::shared_ptr<vk::Instance>(new vk::Instance(nullptr), [](auto* p) {
+    instance_ = std::shared_ptr<vk::Instance>(new vk::Instance(nullptr), [](auto *p) {
         if (*p) {
             p->destroy(nullptr);
             DEBUG_PRINT("Vulkan instance destroyed");
@@ -110,7 +102,7 @@ void GLCV::init_debug_report_callback()
                                 .setPUserData(nullptr);
 
     debug_report_callback_
-        = std::shared_ptr<vk::DebugReportCallbackEXT>(new vk::DebugReportCallbackEXT(nullptr), [instance](auto* p) {
+        = std::shared_ptr<vk::DebugReportCallbackEXT>(new vk::DebugReportCallbackEXT(nullptr), [instance](auto *p) {
               if (*p) {
                   instance.destroy(*p, nullptr);
                   DEBUG_PRINT("Vulkan debug report callback destroyed");
@@ -122,9 +114,22 @@ void GLCV::init_debug_report_callback()
     DEBUG_PRINT("Vulkan debug report callback created");
 }
 
+void GLCV::init_surface(vk::SurfaceKHR surface)
+{
+    surface_ = nullptr;
+    surface_ = std::shared_ptr<vk::SurfaceKHR>(new vk::SurfaceKHR(surface), [this](auto *p) {
+        if (*p) {
+            instance_->destroy(*p);
+            DEBUG_PRINT("Surface destroyed");
+        }
+        delete p;
+    });
+    DEBUG_PRINT("Surface set");
+}
+
 void GLCV::init_physical_device()
 {
-    std::vector<vk::PhysicalDevice> devices = instance_->enumeratePhysicalDevices();
+    const std::vector<vk::PhysicalDevice> &devices = instance_->enumeratePhysicalDevices();
 
     if (devices.empty()) {
         throw std::runtime_error("GLCV ERROR: No suitable GPU found!");
@@ -137,32 +142,85 @@ void GLCV::init_device(const std::vector<const char *> &layer_names)
 {
     std::vector<vk::QueueFamilyProperties> queue_props = physical_device_.getQueueFamilyProperties();
 
-    float queue_priorities = 0.f;
-    auto queue_info
-        = vk::DeviceQueueCreateInfo().setPNext(nullptr).setQueueCount(0).setPQueuePriorities(&queue_priorities);
+    bool graphics_set = false;
+    bool present_set = false;
+    uint32_t graphics_family = std::numeric_limits<uint32_t>::max();
+    uint32_t present_family = std::numeric_limits<uint32_t>::max();
 
-    for (unsigned i = 0; i < queue_props.size(); i++) {
-        if (queue_props[i].queueCount > 0 && (queue_props[i].queueFlags & vk::QueueFlagBits::eGraphics)) {
-            queue_info.setQueueCount(1).setQueueFamilyIndex(i);
+    std::unordered_set<uint32_t> unique_queue_families;
+
+    for (uint32_t i = 0; i < queue_props.size(); i++) {
+        if (!graphics_set && (queue_props[i].queueCount > 0)
+            && (queue_props[i].queueFlags & vk::QueueFlagBits::eGraphics)) {
+            graphics_family = i;
+            graphics_set = true;
+            unique_queue_families.emplace(i);
+        }
+
+        if (surface_) {
+            vk::Bool32 present_support;
+            physical_device_.getSurfaceSupportKHR(i, *surface_, &present_support);
+
+            if (!present_set && (queue_props[i].queueCount > 0 && present_support)) {
+                present_family = i;
+                present_set = true;
+                unique_queue_families.emplace(i);
+            }
+        }
+
+        if (graphics_set && present_set) {
             break;
         }
     }
 
-    if (queue_info.queueCount == 0) {
-        throw std::runtime_error("GLCV ERROR: Failed to find graphics queue for device");
+    if (!graphics_set) {
+        throw std::runtime_error("GLCV ERROR: Failed to find device capable of graphics");
+    }
+    if (surface_ && !present_set) {
+        throw std::runtime_error("GLCV ERROR: Failed to find device capable of presentation");
+    }
+
+    std::vector<vk::DeviceQueueCreateInfo> queue_infos;
+
+    float queue_priority = 0.f;
+    for (uint32_t queue_family : unique_queue_families) {
+        queue_infos.emplace_back(vk::DeviceQueueCreateInfo()
+                                     .setPNext(nullptr)
+                                     .setQueueFamilyIndex(queue_family)
+                                     .setQueueCount(1)
+                                     .setPQueuePriorities(&queue_priority));
+    }
+
+    std::vector<const char *> device_extensions;
+
+    if (surface_) {
+        const std::vector<vk::ExtensionProperties> &available_extensions
+            = physical_device_.enumerateDeviceExtensionProperties();
+
+        auto iter = std::find_if(available_extensions.begin(),
+                                 available_extensions.end(),
+                                 [](const vk::ExtensionProperties &props) {
+                                     return props.extensionName == std::string(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
+                                 });
+
+        if (iter == available_extensions.end()) {
+            throw std::runtime_error("GLCV ERROR: Device does not support swap chains (necessary for display)");
+        }
+
+        device_extensions.emplace_back(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
     }
 
     const auto device_info = vk::DeviceCreateInfo()
                                  .setPNext(nullptr)
-                                 .setQueueCreateInfoCount(1)
-                                 .setPQueueCreateInfos(&queue_info)
-                                 .setEnabledExtensionCount(0)
-                                 .setPpEnabledExtensionNames(nullptr)
+                                 .setQueueCreateInfoCount(static_cast<uint32_t>(queue_infos.size()))
+                                 .setPQueueCreateInfos(queue_infos.data())
+                                 .setEnabledExtensionCount(static_cast<uint32_t>(device_extensions.size()))
+                                 .setPpEnabledExtensionNames(device_extensions.data())
                                  .setEnabledLayerCount(static_cast<uint32_t>(layer_names.size()))
                                  .setPpEnabledLayerNames(layer_names.data())
                                  .setPEnabledFeatures(nullptr);
 
-    device_ = std::shared_ptr<vk::Device>(new vk::Device(nullptr), [](auto* p) {
+    device_ = std::shared_ptr<vk::Device>(new vk::Device(nullptr), [](auto *p) {
         if (*p) {
             p->destroy();
             DEBUG_PRINT("Vulkan device destroyed");
@@ -173,27 +231,13 @@ void GLCV::init_device(const std::vector<const char *> &layer_names)
     GLCV_CHECK(physical_device_.createDevice(&device_info, nullptr, device_.get()));
     DEBUG_PRINT("Vulkan device created");
 
-    graphics_queue_ = device_->getQueue(queue_info.queueFamilyIndex, 0);
+    graphics_queue_ = device_->getQueue(graphics_family, 0);
+
+    if (surface_) {
+        present_queue_ = device_->getQueue(present_family, 0);
+    }
 }
 
 } // namespace detail
-
-GLCV make_glcv(const std::string &app_name,
-               bool use_debug_callback,
-               std::vector<const char *> extension_names,
-               std::vector<const char *> layer_names)
-{
-    if (use_debug_callback) {
-        if (std::find(extension_names.begin(), extension_names.end(), VK_EXT_DEBUG_REPORT_EXTENSION_NAME)
-            == extension_names.end()) {
-            extension_names.emplace_back(VK_EXT_DEBUG_REPORT_EXTENSION_NAME);
-        }
-        if (std::find(layer_names.begin(), layer_names.end(), "VK_LAYER_LUNARG_standard_validation")
-            == layer_names.end()) {
-            layer_names.emplace_back("VK_LAYER_LUNARG_standard_validation");
-        }
-    }
-    return std::make_shared<detail::GLCV>(app_name, extension_names, layer_names, use_debug_callback);
-}
 
 } // namespace glcv

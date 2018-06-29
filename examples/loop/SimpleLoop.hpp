@@ -4,7 +4,7 @@
 // ////////////////////////////////////////////////////////////
 #pragma once
 
-#include <memory>
+#include <glcv/GLCVForwardDeclarations.hpp>
 #include <functional>
 #include <string>
 #include <vector>
@@ -33,6 +33,7 @@ public:
     void run_loop();
 
     std::vector<const char *> get_required_extensions() const;
+    GLFWwindow *get_window() const;
 
 protected:
     double time_step_ = 1.0 / 60.0; // 60 fps
