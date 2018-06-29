@@ -67,7 +67,7 @@ if (GLCV_USE_DEV_FLAGS)
                 -Wold-style-cast -Woverloaded-virtual -Wsign-conversion
                 -Wmissing-declarations -Wmissing-include-dirs -Wshadow)
     else ()
-        set(STRICT_FLAGS /W4 /WX)
+        set(STRICT_FLAGS /WX)
     endif ()
 endif ()
 

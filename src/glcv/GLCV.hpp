@@ -32,10 +32,10 @@ public:
             init_debug_report_callback();
         }
 
-        VkSurfaceKHR surface = nullptr;
+        VkSurfaceKHR surface;
         GLCV_CHECK(surface_functor(static_cast<VkInstance>(instance()), &surface));
         if (surface) {
-            init_surface(surface);
+            init_surface(vk::SurfaceKHR(surface));
         }
 
         init_physical_device();
