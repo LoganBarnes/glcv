@@ -129,7 +129,7 @@ void GLCV::init_surface(vk::SurfaceKHR surface)
 
 void GLCV::init_physical_device()
 {
-    std::vector<vk::PhysicalDevice> devices = instance_->enumeratePhysicalDevices();
+    const std::vector<vk::PhysicalDevice> &devices = instance_->enumeratePhysicalDevices();
 
     if (devices.empty()) {
         throw std::runtime_error("GLCV ERROR: No suitable GPU found!");
@@ -191,12 +191,31 @@ void GLCV::init_device(const std::vector<const char *> &layer_names)
                                      .setPQueuePriorities(&queue_priority));
     }
 
+    std::vector<const char *> device_extensions;
+
+    if (surface_) {
+        const std::vector<vk::ExtensionProperties> &available_extensions
+            = physical_device_.enumerateDeviceExtensionProperties();
+
+        auto iter = std::find_if(available_extensions.begin(),
+                                 available_extensions.end(),
+                                 [](const vk::ExtensionProperties &props) {
+                                     return props.extensionName == std::string(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
+                                 });
+
+        if (iter == available_extensions.end()) {
+            throw std::runtime_error("GLCV ERROR: Device does not support swap chains (necessary for display)");
+        }
+
+        device_extensions.emplace_back(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
+    }
+
     const auto device_info = vk::DeviceCreateInfo()
                                  .setPNext(nullptr)
                                  .setQueueCreateInfoCount(static_cast<uint32_t>(queue_infos.size()))
                                  .setPQueueCreateInfos(queue_infos.data())
-                                 .setEnabledExtensionCount(0)
-                                 .setPpEnabledExtensionNames(nullptr)
+                                 .setEnabledExtensionCount(static_cast<uint32_t>(device_extensions.size()))
+                                 .setPpEnabledExtensionNames(device_extensions.data())
                                  .setEnabledLayerCount(static_cast<uint32_t>(layer_names.size()))
                                  .setPpEnabledLayerNames(layer_names.data())
                                  .setPEnabledFeatures(nullptr);
