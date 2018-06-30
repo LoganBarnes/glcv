@@ -18,10 +18,10 @@ constexpr bool debug = false;
 
 #define VERBOSE
 
-class WireCube : public examples::SimpleLoop
+class VulkanOptions : public examples::SimpleLoop
 {
 public:
-    WireCube() : examples::SimpleLoop("Wire Cube Example")
+    VulkanOptions() : examples::SimpleLoop("Wire Cube Example", 640, 480, true, true)
     {
 #ifdef VERBOSE
         util::print_vector("Available extensions:", vk::enumerateInstanceExtensionProperties(), [](auto &ext) {
@@ -67,7 +67,7 @@ private:
 
 int main()
 {
-    WireCube example;
+    VulkanOptions example;
     example.run_loop();
     return 0;
 }

@@ -5,24 +5,43 @@
 #include "SimpleLoop.hpp"
 #include "glcv/GLCV.hpp"
 
-#include <glcv/GLCV.hpp>
-#include <glcv/ErrorCheck.hpp>
-#define GLFW_INCLUDE_NONE
+#include "glcv/GLCV.hpp"
+#include "glcv/ErrorCheck.hpp"
+
 #define GLFW_INCLUDE_VULKAN
+#include <GL/gl3w.h>
 #include <GLFW/glfw3.h>
 
 #include <iostream>
 #include <chrono>
 #include <algorithm>
 #include <imgui.h>
-#include <imgui_impl_glfw_vulkan.h>
+
+#include <imgui_impl_glfw_gl3.h>
 
 namespace examples {
 
 namespace {
+std::shared_ptr<GLFWwindow> create_window(const std::string &title, int width, int height, bool resizable)
+{
+    glfwWindowHint(GLFW_RESIZABLE, resizable);
+
+    auto window
+        = std::shared_ptr<GLFWwindow>(glfwCreateWindow(width, height, title.c_str(), nullptr, nullptr), [](auto p) {
+              if (p) {
+                  glfwDestroyWindow(p);
+              }
+          });
+
+    if (window == nullptr) {
+        throw std::runtime_error("GLFW window creation failed");
+    }
+
+    return window;
+}
 } // namespace
 
-SimpleLoop::SimpleLoop(const std::string &title, int width, int height, bool resizable)
+SimpleLoop::SimpleLoop(const std::string &title, int width, int height, bool resizable, bool create_opengl_gui_window)
 {
     // Set the error callback before any other GLFW calls so we get proper error reporting
     glfwSetErrorCallback([](int error, const char *description) {
@@ -30,8 +49,13 @@ SimpleLoop::SimpleLoop(const std::string &title, int width, int height, bool res
     });
 
     init_glfw();
-    create_window(title, width, height, resizable);
-    set_callbacks();
+    init_imgui();
+    create_vulkan_window(title, width, height);
+
+    if (create_opengl_gui_window) {
+        create_opengl_window(title + " GUI", width, height, resizable);
+    }
+
     resize(width, height);
 }
 
@@ -49,9 +73,9 @@ std::vector<const char *> SimpleLoop::get_required_extensions() const
     return extensions;
 }
 
-GLFWwindow *SimpleLoop::get_window() const
+GLFWwindow *SimpleLoop::get_vulkan_window() const
 {
-    return window_.get();
+    return vulkan_window_.get();
 }
 
 void SimpleLoop::run_loop()
@@ -79,17 +103,20 @@ void SimpleLoop::run_loop()
         const double alpha = accumulator / time_step_;
 
         int w, h;
-        glfwGetFramebufferSize(get_window(), &w, &h);
-        render(w, h, static_cast<float>(alpha));
+        glfwGetFramebufferSize(get_vulkan_window(), &w, &h);
 
-        //        glfwSwapBuffers(get_window());
+        setup_and_render(w, h, static_cast<float>(alpha));
+
+        if (opengl_window_) {
+            glfwSwapBuffers(opengl_window_.get());
+        }
 
         if (paused_) {
             glfwWaitEvents();
         } else {
             glfwPollEvents();
         }
-    } while (!glfwWindowShouldClose(get_window()));
+    } while (!glfwWindowShouldClose(get_vulkan_window()));
 }
 
 void SimpleLoop::init_glfw()
@@ -104,53 +131,67 @@ void SimpleLoop::init_glfw()
     }
 }
 
-void SimpleLoop::create_window(const std::string &title, int width, int height, bool resizable)
+void SimpleLoop::init_imgui()
 {
-    //    glfwWindowHint(GLFW_RESIZABLE, resizable);
-    glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE); // until I learn how to do this in vulkan
+    imgui_ = std::shared_ptr<ImGuiContext>(ImGui::CreateContext(), [](auto p) { ImGui::DestroyContext(p); });
 
+    ImGuiIO &io = ImGui::GetIO();
+    (void)io;
+
+    if (imgui_ == nullptr) {
+        throw std::runtime_error("ImGui init failed");
+    }
+}
+
+void SimpleLoop::create_vulkan_window(const std::string &title, int width, int height)
+{
     // no api needed for Vulkan
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
 
-    window_ = std::shared_ptr<GLFWwindow>(glfwCreateWindow(width, height, title.c_str(), nullptr, nullptr), [](auto p) {
-        if (p) {
-            glfwDestroyWindow(p);
-        }
-    });
+    // no resize until I learn how to do this in vulkan
+    vulkan_window_ = create_window(title, width, height, false);
 
-    if (window_ == nullptr) {
-        throw std::runtime_error("GLFW window creation failed");
-    }
-
-    //    ImGui::CreateContext();
-    //    ImGuiIO &io = ImGui::GetIO();
-    //    (void)io;
-    //    ImGui_ImplGlfwVulkan_Init_Data init_data = {};
-    //    init_data.allocator = g_Allocator;
-    //    init_data.gpu = g_Gpu;
-    //    init_data.device = g_Device;
-    //    init_data.render_pass = g_RenderPass;
-    //    init_data.pipeline_cache = g_PipelineCache;
-    //    init_data.descriptor_pool = g_DescriptorPool;
-    //    init_data.check_vk_result = check_vk_result;
-
-    //    imgui_ = std::shared_ptr<bool>(new bool(ImGui_ImplGlfwVulkan_Init(get_window(), true, &init_data)), [](auto p) {
-    //        ImGui_ImplGlfwVulkan_Shutdown();
-    //        ImGui::DestroyContext();
-    //        delete p;
-    //    });
+    set_callbacks(vulkan_window_.get());
 }
 
-void SimpleLoop::set_callbacks()
+void SimpleLoop::create_opengl_window(const std::string &title, int width, int height, bool resizable)
 {
-    GLFWwindow *glfw_window = get_window();
+    glfwWindowHint(GLFW_CLIENT_API, GLFW_OPENGL_API);
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
+    opengl_window_ = create_window(title, width, height, resizable);
+
+    glfwMakeContextCurrent(opengl_window_.get());
+    glfwSwapInterval(1);
+
+    if (gl3wInit()) {
+        throw std::runtime_error("Failed to initialize OpenGL");
+    }
+
+    printf("OpenGL %s, GLSL %s\n", glGetString(GL_VERSION), glGetString(GL_SHADING_LANGUAGE_VERSION));
+
+    opengl_imgui_ = std::shared_ptr<bool>( //
+        new bool(ImGui_ImplGlfwGL3_Init(opengl_window_.get(), false)),
+        [](auto p) {
+            ImGui_ImplGlfwGL3_Shutdown();
+            delete p;
+        });
+
+    ImGui::StyleColorsDark();
+
+    set_callbacks(opengl_window_.get());
+}
+
+void SimpleLoop::set_callbacks(GLFWwindow *glfw_window)
+{
     glfwSetWindowUserPointer(glfw_window, this);
 
-    //    glfwSetFramebufferSizeCallback(glfw_window, [](GLFWwindow *window, int width, int height) {
-    //        static_cast<SimpleLoop *>(glfwGetWindowUserPointer(window))->resize(width, height);
-    //    });
+    glfwSetFramebufferSizeCallback(glfw_window, [](GLFWwindow *window, int width, int height) {
+        static_cast<SimpleLoop *>(glfwGetWindowUserPointer(window))->resize(width, height);
+    });
 
-    glfwSetMouseButtonCallback(glfw_window, [](GLFWwindow *window, int button, int action, int) {
+    glfwSetMouseButtonCallback(glfw_window, [](GLFWwindow *window, int button, int action, int mods) {
         auto simple_loop = static_cast<SimpleLoop *>(glfwGetWindowUserPointer(window));
         if (button == GLFW_MOUSE_BUTTON_1) {
             if (action == GLFW_PRESS) {
@@ -160,15 +201,27 @@ void SimpleLoop::set_callbacks()
                 simple_loop->left_mouse_down_ = false;
             }
         }
+
+        if (simple_loop->get_vulkan_window() == window) {
+            // do vulkan gui stuff?
+        } else {
+            ImGui_ImplGlfw_MouseButtonCallback(window, button, action, mods);
+        }
     });
 
-    glfwSetKeyCallback(glfw_window, [](GLFWwindow *window, int key, int, int action, int) {
+    glfwSetKeyCallback(glfw_window, [](GLFWwindow *window, int key, int scancode, int action, int mods) {
         auto simple_loop = static_cast<SimpleLoop *>(glfwGetWindowUserPointer(window));
         if (key == GLFW_KEY_ESCAPE && action == GLFW_RELEASE) {
             glfwSetWindowShouldClose(window, GLFW_TRUE);
         }
         if (key == GLFW_KEY_P && action == GLFW_RELEASE) {
             simple_loop->paused_ = !simple_loop->paused_;
+        }
+
+        if (simple_loop->get_vulkan_window() == window) {
+            // do vulkan gui stuff?
+        } else {
+            ImGui_ImplGlfw_KeyCallback(window, key, scancode, action, mods);
         }
     });
 
@@ -182,9 +235,51 @@ void SimpleLoop::set_callbacks()
         }
     });
 
-    glfwSetScrollCallback(glfw_window, [](GLFWwindow *window, double, double yoffset) {
-        static_cast<SimpleLoop *>(glfwGetWindowUserPointer(window))->handle_scroll(static_cast<float>(yoffset));
+    glfwSetScrollCallback(glfw_window, [](GLFWwindow *window, double xoffset, double yoffset) {
+        auto simple_loop = static_cast<SimpleLoop *>(glfwGetWindowUserPointer(window));
+
+        simple_loop->handle_scroll(static_cast<float>(yoffset));
+
+        if (simple_loop->get_vulkan_window() == window) {
+            // do vulkan gui stuff?
+        } else {
+            ImGui_ImplGlfw_ScrollCallback(window, xoffset, yoffset);
+        }
     });
+
+    glfwSetCharCallback(glfw_window, [](GLFWwindow *window, unsigned c) {
+        auto simple_loop = static_cast<SimpleLoop *>(glfwGetWindowUserPointer(window));
+
+        if (simple_loop->get_vulkan_window() == window) {
+            // do vulkan gui stuff?
+        } else {
+            ImGui_ImplGlfw_CharCallback(window, c);
+        }
+    });
+}
+void SimpleLoop::setup_and_render(int w, int h, float alpha)
+{
+    if (opengl_window_) {
+        int glw, glh;
+        glfwGetFramebufferSize(opengl_window_.get(), &glw, &glh);
+
+        glViewport(0, 0, glw, glh);
+
+        if (paused_) {
+            ImGui_ImplGlfwGL3_NewFrame();
+            render_gui(glw, glh);
+            ImGui::Render();
+        }
+
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+        ImGui_ImplGlfwGL3_NewFrame();
+        render_gui(glw, glh);
+
+        ImGui::Render();
+    }
+
+    render(w, h, alpha);
 }
 
 } // namespace examples

@@ -43,12 +43,21 @@ add_library(glcv-examples-thirdparty
         ${imgui_SOURCE_DIR}/stb_rect_pack.h
         ${imgui_SOURCE_DIR}/stb_textedit.h
         ${imgui_SOURCE_DIR}/stb_truetype.h
-        ${imgui_SOURCE_DIR}/examples/vulkan_example/imgui_impl_glfw_vulkan.cpp
-        ${imgui_SOURCE_DIR}/examples/vulkan_example/imgui_impl_glfw_vulkan.h
+        ${imgui_SOURCE_DIR}/examples/opengl3_example/imgui_impl_glfw_gl3.cpp
+        ${imgui_SOURCE_DIR}/examples/opengl3_example/imgui_impl_glfw_gl3.h
+#        ${imgui_SOURCE_DIR}/examples/vulkan_example/imgui_impl_glfw_vulkan.cpp
+#        ${imgui_SOURCE_DIR}/examples/vulkan_example/imgui_impl_glfw_vulkan.h
+        # gl3w
+        thirdparty/gl3w/src/gl3w.c
+        thirdparty/gl3w/include/GL/gl3w.h
+        thirdparty/gl3w/include/GL/glcorearb.h
+        thirdparty/gl3w/include/KHR/khrplatform.h
         )
 target_include_directories(glcv-examples-thirdparty SYSTEM PUBLIC
         ${imgui_SOURCE_DIR}
+        ${imgui_SOURCE_DIR}/examples/opengl3_example
         ${imgui_SOURCE_DIR}/examples/vulkan_example
+        thirdparty/gl3w/include
         )
 target_link_libraries(glcv-examples-thirdparty Vulkan::Vulkan glfw)
 
@@ -78,5 +87,6 @@ function(add_example example_dir)
     target_compile_options(${exec_name} PRIVATE ${SYSTEM_FLAGS} ${STRICT_FLAGS})
 endfunction()
 
+add_example(0_vulkan_options)
 add_example(wire_cube)
 add_example(wire_cube_camera)
