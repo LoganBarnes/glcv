@@ -27,7 +27,7 @@ public:
     virtual void update(float /*sim_time*/, float /*time_step*/) {}
     virtual void render(int /*view_width*/, int /*view_height*/, float /*alpha*/) const {}
 
-    virtual void render_gui(int /*view_width*/, int /*view_height*/) const {};
+    virtual void render_gui(int /*view_width*/, int /*view_height*/) const {}
 
     virtual void handle_mouse_drag(float /*deltaX*/, float /*deltaY*/) {}
     virtual void handle_scroll(float /*delta*/) {}

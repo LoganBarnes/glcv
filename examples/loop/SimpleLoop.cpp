@@ -116,7 +116,8 @@ void SimpleLoop::run_loop()
         } else {
             glfwPollEvents();
         }
-    } while (!glfwWindowShouldClose(get_vulkan_window()));
+    } while (!glfwWindowShouldClose(get_vulkan_window())
+             && !(opengl_window_ && glfwWindowShouldClose(opengl_window_.get())));
 }
 
 void SimpleLoop::init_glfw()
@@ -257,6 +258,7 @@ void SimpleLoop::set_callbacks(GLFWwindow *glfw_window)
         }
     });
 }
+
 void SimpleLoop::setup_and_render(int w, int h, float alpha)
 {
     if (opengl_window_) {
@@ -277,6 +279,8 @@ void SimpleLoop::setup_and_render(int w, int h, float alpha)
         render_gui(glw, glh);
 
         ImGui::Render();
+
+        ImGui_ImplGlfwGL3_RenderDrawData(ImGui::GetDrawData());
     }
 
     render(w, h, alpha);

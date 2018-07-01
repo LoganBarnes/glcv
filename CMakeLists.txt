@@ -86,6 +86,7 @@ set(GLCV_SOURCE
 #        src/glcv/VulkanUtil.cpp
 #        src/glcv/VulkanUtil.hpp
 
+        src/glcv/util/map_util.hpp
         src/glcv/util/vector_util.hpp
         )
 
