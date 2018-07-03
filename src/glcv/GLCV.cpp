@@ -207,6 +207,14 @@ void GLCV::init_device(const std::vector<const char *> &layer_names)
             throw std::runtime_error("GLCV ERROR: Device does not support swap chains (necessary for display)");
         }
 
+        if (physical_device_.getSurfaceFormatsKHR(surface()).empty()) {
+            throw std::runtime_error("GLCV ERROR: surface does not support display formats");
+        }
+
+        if (physical_device_.getSurfacePresentModesKHR(surface()).empty()) {
+            throw std::runtime_error("GLCV ERROR: surface does not support display presentation modes");
+        }
+
         device_extensions.emplace_back(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
     }
 
