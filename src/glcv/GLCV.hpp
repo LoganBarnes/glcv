@@ -20,11 +20,14 @@ class GLCV
 {
 public:
     template <typename SurfaceCreationFunctor>
-    GLCV(const std::string &app_name,
-         const std::vector<const char *> &extension_names,
-         const std::vector<const char *> &layer_names,
-         bool use_debug_callback,
-         SurfaceCreationFunctor surface_functor)
+    explicit GLCV(const std::string &app_name,
+                  const std::vector<const char *> &extension_names,
+                  const std::vector<const char *> &layer_names,
+                  bool use_debug_callback,
+                  SurfaceCreationFunctor surface_functor)
+        : graphics_family_{std::numeric_limits<uint32_t>::max()}
+        , present_family_{std::numeric_limits<uint32_t>::max()}
+        , surface_format_{vk::Format::eUndefined, vk::ColorSpaceKHR::eSrgbNonlinear}
     {
         init_instance(app_name, extension_names, layer_names);
 
@@ -33,13 +36,18 @@ public:
         }
 
         VkSurfaceKHR surface;
-        GLCV_CHECK(surface_functor(static_cast<VkInstance>(instance()), &surface));
+        uint32_t width, height;
+        GLCV_CHECK(surface_functor(static_cast<VkInstance>(instance()), &surface, &width, &height));
         if (surface) {
             init_surface(vk::SurfaceKHR(surface));
         }
 
         init_physical_device();
         init_device(layer_names);
+
+        if (surface) {
+            init_swapchain(width, height);
+        }
     }
 
     const vk::Instance &instance() const;
@@ -53,8 +61,15 @@ private:
     std::shared_ptr<vk::SurfaceKHR> surface_;
     vk::PhysicalDevice physical_device_;
     std::shared_ptr<vk::Device> device_;
+    uint32_t graphics_family_;
+    uint32_t present_family_;
     vk::Queue graphics_queue_; // make this a map of queues eventually
     vk::Queue present_queue_; // make this a map of queues eventually
+
+    std::shared_ptr<vk::SwapchainKHR> swapchain_;
+    std::vector<vk::Image> swapchain_images_;
+    vk::SurfaceFormatKHR surface_format_;
+    vk::Extent2D extent_;
 
     void init_instance(const std::string &app_name,
                        const std::vector<const char *> &extension_names,
@@ -64,6 +79,7 @@ private:
     void init_surface(vk::SurfaceKHR surface);
     void init_physical_device();
     void init_device(const std::vector<const char *> &layer_names);
+    void init_swapchain(uint32_t width, uint32_t height);
 };
 
 } // namespace detail

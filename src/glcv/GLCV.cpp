@@ -144,15 +144,13 @@ void GLCV::init_device(const std::vector<const char *> &layer_names)
 
     bool graphics_set = false;
     bool present_set = false;
-    uint32_t graphics_family = std::numeric_limits<uint32_t>::max();
-    uint32_t present_family = std::numeric_limits<uint32_t>::max();
 
     std::unordered_set<uint32_t> unique_queue_families;
 
     for (uint32_t i = 0; i < queue_props.size(); i++) {
         if (!graphics_set && (queue_props[i].queueCount > 0)
             && (queue_props[i].queueFlags & vk::QueueFlagBits::eGraphics)) {
-            graphics_family = i;
+            graphics_family_ = i;
             graphics_set = true;
             unique_queue_families.emplace(i);
         }
@@ -162,7 +160,7 @@ void GLCV::init_device(const std::vector<const char *> &layer_names)
             physical_device_.getSurfaceSupportKHR(i, *surface_, &present_support);
 
             if (!present_set && (queue_props[i].queueCount > 0 && present_support)) {
-                present_family = i;
+                present_family_ = i;
                 present_set = true;
                 unique_queue_families.emplace(i);
             }
@@ -239,11 +237,104 @@ void GLCV::init_device(const std::vector<const char *> &layer_names)
     GLCV_CHECK(physical_device_.createDevice(&device_info, nullptr, device_.get()));
     DEBUG_PRINT("Vulkan device created");
 
-    graphics_queue_ = device_->getQueue(graphics_family, 0);
+    graphics_queue_ = device_->getQueue(graphics_family_, 0);
 
     if (surface_) {
-        present_queue_ = device_->getQueue(present_family, 0);
+        present_queue_ = device_->getQueue(present_family_, 0);
     }
+}
+
+void GLCV::init_swapchain(uint32_t width, uint32_t height)
+{
+    vk::PresentModeKHR present_mode = vk::PresentModeKHR::eFifo;
+    vk::SurfaceCapabilitiesKHR capabilities;
+
+    // surface format
+    {
+        std::vector<vk::SurfaceFormatKHR> surface_formats = physical_device().getSurfaceFormatsKHR(surface());
+        assert(!surface_formats.empty()); // should've thrown in 'init_device' if empty
+
+        surface_format_ = surface_formats[0];
+
+        if (surface_format_.format == vk::Format::eUndefined) {
+            surface_format_ = {vk::Format::eB8G8R8A8Unorm, vk::ColorSpaceKHR::eSrgbNonlinear};
+        } else {
+            for (const auto &format : surface_formats) {
+                if (format.format == vk::Format::eB8G8R8A8Unorm
+                    && format.colorSpace == vk::ColorSpaceKHR::eSrgbNonlinear) {
+                    surface_format_ = format;
+                    break;
+                }
+            }
+        }
+    }
+
+    // present mode
+    {
+        std::vector<vk::PresentModeKHR> present_modes = physical_device().getSurfacePresentModesKHR(surface());
+        for (const auto &mode : present_modes) {
+            if (mode == vk::PresentModeKHR::eMailbox) {
+                present_mode = mode;
+                break;
+            } else if (mode == vk::PresentModeKHR::eImmediate) {
+                present_mode = mode;
+                // no break
+            }
+        }
+    }
+
+    {
+        capabilities = physical_device().getSurfaceCapabilitiesKHR(surface());
+        extent_ = capabilities.currentExtent;
+
+        if (extent_.width == std::numeric_limits<uint32_t>::max()) {
+            extent_ = vk::Extent2D{width, height};
+        }
+    }
+
+    uint32_t image_count = capabilities.minImageCount + 1;
+    if (capabilities.maxImageCount > 0 && image_count > capabilities.maxImageCount) {
+        image_count = capabilities.maxImageCount;
+    }
+
+    std::vector<uint32_t> family_indices;
+    vk::SharingMode sharing_mode = vk::SharingMode::eExclusive;
+
+    if (surface() && graphics_family_ != present_family_) {
+        family_indices = {graphics_family_, present_family_};
+        sharing_mode = vk::SharingMode::eConcurrent;
+    }
+
+    const auto swapchain_info = vk::SwapchainCreateInfoKHR()
+                                    .setPNext(nullptr)
+                                    .setSurface(surface())
+                                    .setMinImageCount(image_count)
+                                    .setImageFormat(surface_format_.format)
+                                    .setImageColorSpace(surface_format_.colorSpace)
+                                    .setImageExtent(extent_)
+                                    .setImageArrayLayers(1)
+                                    .setImageUsage(vk::ImageUsageFlagBits::eColorAttachment)
+                                    .setImageSharingMode(sharing_mode)
+                                    .setQueueFamilyIndexCount(static_cast<uint32_t>(family_indices.size()))
+                                    .setPQueueFamilyIndices(family_indices.data())
+                                    .setPreTransform(capabilities.currentTransform)
+                                    .setCompositeAlpha(vk::CompositeAlphaFlagBitsKHR::eOpaque)
+                                    .setPresentMode(present_mode)
+                                    .setClipped(VK_TRUE)
+                                    .setOldSwapchain(nullptr);
+
+    swapchain_ = std::shared_ptr<vk::SwapchainKHR>(new vk::SwapchainKHR(nullptr), [this](auto *p) {
+        if (*p) {
+            device_->destroy(*swapchain_);
+            DEBUG_PRINT("Swapchain destroyed");
+        }
+        delete p;
+    });
+
+    GLCV_CHECK(device().createSwapchainKHR(&swapchain_info, nullptr, swapchain_.get()));
+    DEBUG_PRINT("Swapchain created");
+
+    swapchain_images_ = device().getSwapchainImagesKHR(*swapchain_);
 }
 
 } // namespace detail

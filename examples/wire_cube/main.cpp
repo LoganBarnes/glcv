@@ -32,7 +32,11 @@ public:
         });
 #endif
 
-        auto surf_func = [&](VkInstance instance, VkSurfaceKHR *surface) {
+        auto surf_func = [&](VkInstance instance, VkSurfaceKHR *surface, uint32_t *width, uint32_t *height) {
+            int w, h;
+            glfwGetFramebufferSize(get_window(), &w, &h);
+            *width = static_cast<uint32_t>(w);
+            *height = static_cast<uint32_t>(h);
             return glfwCreateWindowSurface(instance, get_window(), nullptr, surface);
         };
         glcv_ = glcv::make_glcv("Example", debug, get_required_extensions(), {}, surf_func);
