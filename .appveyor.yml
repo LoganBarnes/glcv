@@ -19,9 +19,6 @@ matrix:
 
 platform: x64
 
-cache:
-  - c:\VulkanSDK
-
 build:
   parallel: true # enable MSBuild parallel builds
   verbosity: minimal
