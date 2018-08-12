@@ -2,7 +2,7 @@
 # Graphics Library Classes Vulkan
 # Copyright (c) 2018. All rights reserved.
 ###############################################################
-cmake_minimum_required(VERSION 3.11.0)
+cmake_minimum_required(VERSION 3.12)
 project(GLCV)
 
 set(CMAKE_CXX_STANDARD 17)
@@ -36,22 +36,16 @@ download_project(PROJ glm
         QUIET
         )
 
-add_definitions(-DGLM_FORCE_RADIANS -DGLM_ENABLE_EXPERIMENTAL)
-
-### ImGui ###
-download_project(PROJ imgui
-        PREFIX thirdparty
-        GIT_REPOSITORY https://github.com/ocornut/imgui.git
-        GIT_TAG v1.60
-        UPDATE_DISCONNECTED ${UPDATE_STATUS}
-        ${QUIET_FLAG}
-        )
-
 find_package(Vulkan REQUIRED)
 
-add_library(glcv-thirdparty INTERFACE)
-target_include_directories(glcv-thirdparty SYSTEM INTERFACE ${glm_SOURCE_DIR})
-target_link_libraries(glcv-thirdparty INTERFACE Vulkan::Vulkan)
+add_library(glcv_thirdparty INTERFACE)
+target_include_directories(glcv_thirdparty SYSTEM INTERFACE ${glm_SOURCE_DIR})
+target_link_libraries(glcv_thirdparty INTERFACE Vulkan::Vulkan)
+target_compile_definitions(glcv_thirdparty
+        INTERFACE -DGLM_FORCE_RADIANS
+        INTERFACE -DGLM_ENABLE_EXPERIMENTAL
+        INTERFACE -DGLM_FORCE_EXPLICIT_CTOR
+        )
 
 #############################
 ### Project Configuration ###
@@ -74,24 +68,15 @@ endif ()
 ###############################
 ### Vulkan Graphics Classes ###
 ###############################
-set(GLCV_SOURCE
-        src/glcv/detail/VulkanExt.cpp
-        src/glcv/detail/VulkanExt.hpp
-
-        src/glcv/ErrorCheck.cpp
-        src/glcv/ErrorCheck.hpp
-        src/glcv/GLCV.cpp
-        src/glcv/GLCV.hpp
-        src/glcv/GLCVForwardDeclarations.hpp
-#        src/glcv/VulkanUtil.cpp
-#        src/glcv/VulkanUtil.hpp
-
-        src/glcv/util/vector_util.hpp
+file(GLOB_RECURSE GLCV_SOURCE_FILES
+        LIST_DIRECTORIES false
+        CONFIGURE_DEPENDS
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/glcv/*
         )
 
-add_library(glcv ${GLCV_SOURCE})
+add_library(glcv ${GLCV_SOURCE_FILES})
 target_include_directories(glcv PUBLIC src)
-target_link_libraries(glcv glcv-thirdparty)
+target_link_libraries(glcv glcv_thirdparty)
 target_compile_options(glcv PRIVATE ${SYSTEM_FLAGS} ${STRICT_FLAGS})
 
 if (${GLCV_BUILD_EXAMPLES})

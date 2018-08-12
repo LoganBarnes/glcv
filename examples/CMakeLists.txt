@@ -78,5 +78,4 @@ function(add_example example_dir)
     target_compile_options(${exec_name} PRIVATE ${SYSTEM_FLAGS} ${STRICT_FLAGS})
 endfunction()
 
-add_example(wire_cube)
-add_example(wire_cube_camera)
+add_example(0_basics)
