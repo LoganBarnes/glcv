@@ -33,7 +33,7 @@ install:
   ############################################################################
   # Install a recent CMake
   ############################################################################
-  - set CMAKE_URL="https://cmake.org/files/v3.11/cmake-3.11.0-win64-x64.zip"
+  - set CMAKE_URL="https://cmake.org/files/v3.12/cmake-3.12.0-win64-x64.zip"
   - appveyor DownloadFile %CMAKE_URL% -FileName cmake.zip
   - 7z x cmake.zip -oC:\projects\deps > nul
   - move C:\projects\deps\cmake-* C:\projects\deps\cmake # Move to a version-agnostic directory
@@ -43,10 +43,10 @@ install:
   ############################################################################
   # Install Vulkan
   ############################################################################
-  - set VULKAN_URL="https://sdk.lunarg.com/sdk/download/1.1.77.0/windows/VulkanSDK-1.1.77.0-Installer.exe?Human=true;u="
+  - set VULKAN_URL="https://sdk.lunarg.com/sdk/download/1.1.82.0/windows/VulkanSDK-1.1.82.0-Installer.exe?Human=true;u="
   - appveyor DownloadFile %VULKAN_URL% -FileName VulkanSDK.exe
   - .\VulkanSDK.exe /S
-  - set VULKAN_SDK=c:\VulkanSDK\1.1.77.0
+  - set VULKAN_SDK=c:\VulkanSDK\1.1.82.0
 
 before_build:
   - call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvars64.bat"

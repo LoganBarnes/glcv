@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 pushd $1
-CMAKE_VERSION=3.11
+CMAKE_VERSION=3.12
 CMAKE_TAR_FILE="cmake-$CMAKE_VERSION.0-Linux-x86_64.tar.gz"
 CMAKE_URL="https://cmake.org/files/v$CMAKE_VERSION/$CMAKE_TAR_FILE"
 mkdir cmake \

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 pushd $1
-VULKAN_VERSION=1.1.77.0
+VULKAN_VERSION=1.1.82.0
 VULKAN_TAR_FILE="vulkansdk-linux-x86_64-${VULKAN_VERSION}.tar.gz"
 VULKAN_URL="https://sdk.lunarg.com/sdk/download/${VULKAN_VERSION}/linux/${VULKAN_TAR_FILE}?Human=true;u="
 mkdir vulkan-linux \
