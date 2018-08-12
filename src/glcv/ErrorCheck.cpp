@@ -64,6 +64,8 @@ std::string to_string(vk::Result &result)
         return "ErrorValidationFailedEXT";
     case vk::Result::eErrorInvalidShaderNV:
         return "ErrorInvalidShaderNV";
+    case vk::Result::eErrorFragmentationEXT:
+        return "ErrorFragmentationEXT";
     case vk::Result::eErrorNotPermittedEXT:
         return "ErrorNotPermittedEXT";
     }
@@ -134,6 +136,8 @@ vk::Result to_vk_result(VkResult result)
         return vk::Result::eErrorValidationFailedEXT;
     case VK_ERROR_INVALID_SHADER_NV:
         return vk::Result::eErrorInvalidShaderNV;
+    case VK_ERROR_FRAGMENTATION_EXT:
+        return vk::Result::eErrorFragmentationEXT;
     case VK_ERROR_NOT_PERMITTED_EXT:
         return vk::Result::eErrorNotPermittedEXT;
     case VK_RESULT_RANGE_SIZE:
