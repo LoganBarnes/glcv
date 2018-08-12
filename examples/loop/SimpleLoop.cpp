@@ -19,8 +19,7 @@
 
 namespace examples {
 
-namespace {
-} // namespace
+namespace {} // namespace
 
 SimpleLoop::SimpleLoop(const std::string &title, int width, int height, bool resizable)
 {

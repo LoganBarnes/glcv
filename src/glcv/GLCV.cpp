@@ -325,7 +325,7 @@ void GLCV::init_swapchain(uint32_t width, uint32_t height)
 
     swapchain_ = std::shared_ptr<vk::SwapchainKHR>(new vk::SwapchainKHR(nullptr), [this](auto *p) {
         if (*p) {
-            device_->destroy(*swapchain_);
+            device_->destroy(*p);
             DEBUG_PRINT("Swapchain destroyed");
         }
         delete p;
@@ -335,6 +335,47 @@ void GLCV::init_swapchain(uint32_t width, uint32_t height)
     DEBUG_PRINT("Swapchain created");
 
     swapchain_images_ = device().getSwapchainImagesKHR(*swapchain_);
+}
+
+void GLCV::init_swapchain_images()
+{
+    swapchain_image_views_.resize(swapchain_images_.size());
+
+    for (std::size_t i = 0; i < swapchain_image_views_.size(); ++i) {
+
+        auto mapping = vk::ComponentMapping()
+                           .setR(vk::ComponentSwizzle::eIdentity)
+                           .setG(vk::ComponentSwizzle::eIdentity)
+                           .setB(vk::ComponentSwizzle::eIdentity)
+                           .setA(vk::ComponentSwizzle::eIdentity);
+
+        auto subresource_range = vk::ImageSubresourceRange()
+                                     .setAspectMask(vk::ImageAspectFlagBits::eColor)
+                                     .setBaseMipLevel(0)
+                                     .setLevelCount(1)
+                                     .setBaseArrayLayer(0)
+                                     .setLayerCount(1);
+
+        auto image_view_info = vk::ImageViewCreateInfo()
+                                   .setPNext(nullptr)
+                                   .setImage(swapchain_images_[i])
+                                   .setViewType(vk::ImageViewType::e2D)
+                                   .setFormat(surface_format_.format)
+                                   .setComponents(mapping)
+                                   .setSubresourceRange(subresource_range);
+
+        swapchain_image_views_[i]
+            = std::shared_ptr<vk::ImageView>(new vk::ImageView(nullptr), [this](vk::ImageView *p) {
+                  if (*p) {
+                      device_->destroy(*p);
+                      DEBUG_PRINT("ImageView destroyed");
+                  }
+                  delete p;
+              });
+
+        GLCV_CHECK(device().createImageView(&image_view_info, nullptr, swapchain_image_views_[i].get()));
+        DEBUG_PRINT("ImageView created");
+    }
 }
 
 } // namespace detail

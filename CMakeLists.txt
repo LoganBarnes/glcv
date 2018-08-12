@@ -31,7 +31,7 @@ endif ()
 download_project(PROJ glm
         PREFIX thirdparty
         GIT_REPOSITORY https://github.com/g-truc/glm.git
-        GIT_TAG master
+        GIT_TAG 0.9.9.0
         UPDATE_DISCONNECTED ${UPDATE_STATUS}
         QUIET
         )

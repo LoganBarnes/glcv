@@ -47,6 +47,7 @@ public:
 
         if (surface) {
             init_swapchain(width, height);
+            init_swapchain_images();
         }
     }
 
@@ -71,6 +72,8 @@ private:
     vk::SurfaceFormatKHR surface_format_;
     vk::Extent2D extent_;
 
+    std::vector<std::shared_ptr<vk::ImageView>> swapchain_image_views_;
+
     void init_instance(const std::string &app_name,
                        const std::vector<const char *> &extension_names,
                        const std::vector<const char *> &layer_names);
@@ -80,6 +83,7 @@ private:
     void init_physical_device();
     void init_device(const std::vector<const char *> &layer_names);
     void init_swapchain(uint32_t width, uint32_t height);
+    void init_swapchain_images();
 };
 
 } // namespace detail
