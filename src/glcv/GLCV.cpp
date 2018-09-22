@@ -33,8 +33,6 @@ VKAPI_ATTR VkBool32 VKAPI_CALL debug_callback(VkDebugReportFlagsEXT /*flags*/,
 
 namespace glcv {
 
-namespace detail {
-
 const vk::Instance &GLCV::instance() const
 {
     return *instance_;
@@ -377,7 +375,5 @@ void GLCV::init_swapchain_images()
         DEBUG_PRINT("ImageView created");
     }
 }
-
-} // namespace detail
 
 } // namespace glcv

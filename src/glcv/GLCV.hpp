@@ -14,11 +14,28 @@ namespace glcv {
 
 using SurfaceCreationFunction = std::add_pointer<vk::Result(VkInstance, VkSurfaceKHR *)>::type;
 
-namespace detail {
+struct EmptySurfaceFunctor
+{
+    VkResult operator()(VkInstance, VkSurfaceKHR *) { return VK_SUCCESS; }
+};
 
 class GLCV
 {
 public:
+    const vk::Instance &instance() const;
+    const vk::SurfaceKHR &surface() const;
+    const vk::PhysicalDevice &physical_device() const;
+    const vk::Device &device() const;
+
+    template <typename SurfaceCreationFunctor = EmptySurfaceFunctor>
+    static std::shared_ptr<GLCV> create_shared_instance(const std::string &app_name = "GLCV Application",
+                                                        bool use_debug_callback = false,
+                                                        std::vector<const char *> extension_names = {},
+                                                        std::vector<const char *> layer_names = {},
+                                                        SurfaceCreationFunctor surface_functor
+                                                        = SurfaceCreationFunctor{});
+
+private:
     template <typename SurfaceCreationFunctor>
     explicit GLCV(const std::string &app_name,
                   const std::vector<const char *> &extension_names,
@@ -51,12 +68,6 @@ public:
         }
     }
 
-    const vk::Instance &instance() const;
-    const vk::SurfaceKHR &surface() const;
-    const vk::PhysicalDevice &physical_device() const;
-    const vk::Device &device() const;
-
-private:
     std::shared_ptr<vk::Instance> instance_;
     std::shared_ptr<vk::DebugReportCallbackEXT> debug_report_callback_;
     std::shared_ptr<vk::SurfaceKHR> surface_;
@@ -86,19 +97,12 @@ private:
     void init_swapchain_images();
 };
 
-} // namespace detail
-
-struct EmptySurfaceFunctor
-{
-    VkResult operator()(VkInstance, VkSurfaceKHR *) { return VK_SUCCESS; }
-};
-
-template <typename SurfaceCreationFunctor = EmptySurfaceFunctor>
-GLCV make_glcv(const std::string &app_name = "GLCV Application",
-               bool use_debug_callback = false,
-               std::vector<const char *> extension_names = {},
-               std::vector<const char *> layer_names = {},
-               SurfaceCreationFunctor surface_functor = SurfaceCreationFunctor{})
+template <typename SurfaceCreationFunctor>
+std::shared_ptr<GLCV> GLCV::create_shared_instance(const std::string &app_name,
+                                                   bool use_debug_callback,
+                                                   std::vector<const char *> extension_names,
+                                                   std::vector<const char *> layer_names,
+                                                   SurfaceCreationFunctor surface_functor)
 {
     if (use_debug_callback) {
         if (std::find(extension_names.begin(), extension_names.end(), VK_EXT_DEBUG_REPORT_EXTENSION_NAME)
@@ -110,7 +114,9 @@ GLCV make_glcv(const std::string &app_name = "GLCV Application",
             layer_names.emplace_back("VK_LAYER_LUNARG_standard_validation");
         }
     }
-    return std::make_shared<detail::GLCV>(app_name, extension_names, layer_names, use_debug_callback, surface_functor);
+
+    // Cannot use make_shared here becasue GLCV constructor is private
+    return std::shared_ptr<GLCV>(new GLCV(app_name, extension_names, layer_names, use_debug_callback, surface_functor));
 }
 
 } // glcv

@@ -39,8 +39,7 @@ public:
             *height = static_cast<uint32_t>(h);
             return glfwCreateWindowSurface(instance, get_window(), nullptr, surface);
         };
-        glcv_ = glcv::make_glcv("Example", debug, get_required_extensions(), {}, surf_func);
-        // glcv_ = glcv::make_glcv("Example", debug, get_required_extensions());
+        glcv_ = glcv::GLCV::create_shared_instance("Example", debug, get_required_extensions(), {}, surf_func);
 
 #ifdef VERBOSE
         vk::PhysicalDeviceProperties device_props;
@@ -65,7 +64,7 @@ public:
     void render(int /*view_width*/, int /*view_height*/, float) const final {}
 
 private:
-    glcv::GLCV glcv_;
+    std::shared_ptr<glcv::GLCV> glcv_;
     unsigned counter_ = 10000000;
 };
 
