@@ -20,6 +20,7 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 ### EXTERNAL REPOS ###
 ######################
 include(DownloadProject)
+include(CompileShaders)
 
 if (GLCV_UPDATE_REPOS)
     set(UPDATE_STATUS 0)
@@ -28,24 +29,24 @@ else ()
 endif ()
 
 ### GLM ###
-download_project(PROJ glm
-        PREFIX thirdparty
-        GIT_REPOSITORY https://github.com/g-truc/glm.git
-        GIT_TAG 0.9.9.0
-        UPDATE_DISCONNECTED ${UPDATE_STATUS}
-        QUIET
-        )
+#download_project(PROJ glm
+#        PREFIX thirdparty
+#        GIT_REPOSITORY https://github.com/g-truc/glm.git
+#        GIT_TAG 0.9.9.0
+#        UPDATE_DISCONNECTED ${UPDATE_STATUS}
+#        QUIET
+#        )
 
 find_package(Vulkan REQUIRED)
 
 add_library(glcv_thirdparty INTERFACE)
-target_include_directories(glcv_thirdparty SYSTEM INTERFACE ${glm_SOURCE_DIR})
+#target_include_directories(glcv_thirdparty SYSTEM INTERFACE ${glm_SOURCE_DIR})
 target_link_libraries(glcv_thirdparty INTERFACE Vulkan::Vulkan)
-target_compile_definitions(glcv_thirdparty
-        INTERFACE -DGLM_FORCE_RADIANS
-        INTERFACE -DGLM_ENABLE_EXPERIMENTAL
-        INTERFACE -DGLM_FORCE_EXPLICIT_CTOR
-        )
+#target_compile_definitions(glcv_thirdparty
+#        INTERFACE -DGLM_FORCE_RADIANS
+#        INTERFACE -DGLM_ENABLE_EXPERIMENTAL
+#        INTERFACE -DGLM_FORCE_EXPLICIT_CTOR
+#        )
 
 #############################
 ### Project Configuration ###
@@ -71,7 +72,7 @@ endif ()
 file(GLOB_RECURSE GLCV_SOURCE_FILES
         LIST_DIRECTORIES false
         CONFIGURE_DEPENDS
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/glcv/*
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/*
         )
 
 add_library(glcv ${GLCV_SOURCE_FILES})

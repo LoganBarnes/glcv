@@ -70,6 +70,7 @@ target_include_directories(example_loop PUBLIC . ${CMAKE_BINARY_DIR})
 ################
 ### Examples ###
 ################
+configure_file(ExampleConfig.hpp.in ${CMAKE_BINARY_DIR}/examples/ExampleConfig.hpp)
 
 function(add_example example_dir)
     set(exec_name example_${example_dir})
@@ -79,3 +80,13 @@ function(add_example example_dir)
 endfunction()
 
 add_example(0_basics)
+
+file(GLOB_RECURSE SHADER_FILES
+        LIST_DIRECTORIES false
+        CONFIGURE_DEPENDS
+        ${CMAKE_CURRENT_SOURCE_DIR}/shaders/*
+        )
+
+compile_shaders(shaders examples/spirv ${SHADER_FILES})
+
+target_link_libraries(example_loop shaders)

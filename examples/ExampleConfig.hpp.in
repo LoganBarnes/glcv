@@ -1,18 +1,20 @@
 // ////////////////////////////////////////////////////////////
-// Graphics Library Classes Vulkan
+// Created on 4/22/18.
 // Copyright (c) 2018. All rights reserved.
 // ////////////////////////////////////////////////////////////
 #pragma once
 
 #include <string>
 
-#cmakedefine GLCV_HEADLESS
-
-namespace examples {
-
-inline std::string shader_path()
+namespace examples
 {
-    return "${CMAKE_SOURCE_DIR}/examples/shaders/";
+
+inline std::string build_path() {
+    return "@{CMAKE_BINARY_DIR@";
+}
+
+inline std::string spirv_path() {
+    return build_path() + "examples/spirv/";
 }
 
 } // namespace examples
