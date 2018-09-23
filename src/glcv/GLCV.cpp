@@ -11,9 +11,6 @@
 #include <algorithm>
 #include <unordered_set>
 
-//#define DEBUG_PRINT(msg) {}
-#define DEBUG_PRINT(msg) std::cout << "DEBUG: " << (msg) << std::endl
-
 namespace {
 
 VKAPI_ATTR VkBool32 VKAPI_CALL debug_callback(VkDebugReportFlagsEXT /*flags*/,

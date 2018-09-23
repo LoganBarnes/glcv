@@ -4,9 +4,11 @@
 // ////////////////////////////////////////////////////////////
 #pragma once
 
-#include <glcv/GLCV.hpp>
+#include <vulkan/vulkan.hpp>
+#include <unordered_map>
 
-extern "C"
-{
-    vk::Result vkExtInitInstance(vk::Instance instance);
-}
+namespace glcv {
+
+const std::unordered_map<std::string, vk::ShaderStageFlagBits> &shader_ext_to_type();
+
+} // namespace glcv

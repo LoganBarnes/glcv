@@ -10,6 +10,9 @@
 #include <memory>
 #include <vector>
 
+//#define DEBUG_PRINT(msg) {}
+#define DEBUG_PRINT(msg) std::cout << "DEBUG: " << (msg) << std::endl
+
 namespace glcv {
 
 using SurfaceCreationFunction = std::add_pointer<vk::Result(VkInstance, VkSurfaceKHR *)>::type;

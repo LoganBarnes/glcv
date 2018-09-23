@@ -4,7 +4,9 @@
 // ////////////////////////////////////////////////////////////
 #include "loop/SimpleLoop.hpp"
 #include "glcv/GLCV.hpp"
+#include "glcv/GraphicsPipeline.hpp"
 #include "glcv/util/vector_util.hpp"
+#include "examples/ExampleConfig.hpp"
 
 #define GLFW_INCLUDE_NONE
 #define GLFW_INCLUDE_VULKAN
@@ -31,15 +33,23 @@ public:
             return layer.layerName;
         });
 #endif
+        int w, h;
+        glfwGetFramebufferSize(get_window(), &w, &h);
+        auto uw = static_cast<uint32_t>(w);
+        auto uh = static_cast<uint32_t>(h);
 
         auto surf_func = [&](VkInstance instance, VkSurfaceKHR *surface, uint32_t *width, uint32_t *height) {
-            int w, h;
-            glfwGetFramebufferSize(get_window(), &w, &h);
-            *width = static_cast<uint32_t>(w);
-            *height = static_cast<uint32_t>(h);
+            *width = uw;
+            *height = uh;
             return glfwCreateWindowSurface(instance, get_window(), nullptr, surface);
         };
         glcv_ = glcv::GLCV::create_shared_instance("Example", debug, get_required_extensions(), {}, surf_func);
+
+        std::vector<std::pair<std::string, vk::ShaderStageFlagBits>> spirv_files = {
+            {examples::spirv_path() + "triangle_vert.spv", vk::ShaderStageFlagBits::eVertex},
+            {examples::spirv_path() + "triangle_frag.spv", vk::ShaderStageFlagBits::eFragment},
+        };
+        auto pipeline = glcv::GraphicsPipeline(glcv_, spirv_files, uw, uh);
 
 #ifdef VERBOSE
         vk::PhysicalDeviceProperties device_props;
@@ -64,8 +74,8 @@ public:
     void render(int /*view_width*/, int /*view_height*/, float) const final {}
 
 private:
-    std::shared_ptr<glcv::GLCV> glcv_;
     unsigned counter_ = 10000000;
+    std::shared_ptr<glcv::GLCV> glcv_;
 };
 
 int main()

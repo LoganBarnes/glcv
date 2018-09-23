@@ -4,9 +4,15 @@
 // ////////////////////////////////////////////////////////////
 #pragma once
 
-#include <glcv/GLCV.hpp>
+#include <unordered_set>
+#include <unordered_map>
 
-extern "C"
+namespace util {
+
+template <typename Map, typename T>
+bool has_key(const Map &map, const T &value)
 {
-    vk::Result vkExtInitInstance(vk::Instance instance);
+    return map.find(value) != map.end();
 }
+
+} // namespace util
