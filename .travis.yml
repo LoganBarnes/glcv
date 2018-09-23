@@ -87,9 +87,8 @@ script:
    -DGLCV_BUILD_TESTS=ON \
    -DGLCV_BUILD_EXAMPLES=ON \
    -DGLCV_USE_DEV_FLAGS=ON \
-   -DGLCV_HEADLESS=ON \
    ..
-  - make -j
+  - cmake --build . --parallel
 
   - cd ${TRAVIS_BUILD_DIR}
   - mkdir cmake-build-release
@@ -100,9 +99,8 @@ script:
    -DGLCV_BUILD_TESTS=ON \
    -DGLCV_BUILD_EXAMPLES=ON \
    -DGLCV_USE_DEV_FLAGS=ON \
-   -DGLCV_HEADLESS=ON \
    ..
-  - make -j
+  - cmake --build . --parallel
 
 notifications:
   on_success: never

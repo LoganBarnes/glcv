@@ -10,7 +10,7 @@ namespace examples
 {
 
 inline std::string build_path() {
-    return "@CMAKE_BINARY_DIR@";
+    return "@CMAKE_BINARY_DIR@/";
 }
 
 inline std::string spirv_path() {

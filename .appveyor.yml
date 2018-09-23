@@ -60,7 +60,7 @@ build_script:
       -DGLCV_BUILD_EXAMPLES=ON ^
       -DGLCV_USE_DEV_FLAGS=ON ^
       ..
-  - cmake --build . --config %CONFIGURATION% -- /m
+  - cmake --build . --config %CONFIGURATION% --parallel
 
 #test_script:
 #  - ctest -C %CONFIGURATION%

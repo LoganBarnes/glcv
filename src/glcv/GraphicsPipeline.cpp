@@ -59,10 +59,21 @@ GraphicsPipeline::GraphicsPipeline(std::shared_ptr<GLCV> glcv,
                               .setTopology(vk::PrimitiveTopology::eTriangleList)
                               .setPrimitiveRestartEnable(false);
 
-    auto viewport
-        = vk::Viewport().setX(0.f).setY(0.f).setWidth(width).setHeight(height).setMinDepth(0.f).setMaxDepth(1.f);
+    auto viewport = vk::Viewport()
+                        .setX(0.f)
+                        .setY(0.f)
+                        .setWidth(static_cast<float>(width))
+                        .setHeight(static_cast<float>(height))
+                        .setMinDepth(0.f)
+                        .setMaxDepth(1.f);
 
     auto scissor = vk::Rect2D().setOffset({0, 0}).setExtent({width, height});
+
+    // unused for now
+    (void)vertex_input;
+    (void)input_assembly;
+    (void)viewport;
+    (void)scissor;
 }
 
 } // namespace glcv

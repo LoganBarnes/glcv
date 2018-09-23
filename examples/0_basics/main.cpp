@@ -49,7 +49,9 @@ public:
             {examples::spirv_path() + "triangle_vert.spv", vk::ShaderStageFlagBits::eVertex},
             {examples::spirv_path() + "triangle_frag.spv", vk::ShaderStageFlagBits::eFragment},
         };
+
         auto pipeline = glcv::GraphicsPipeline(glcv_, spirv_files, uw, uh);
+        (void)pipeline; //  until we use this
 
 #ifdef VERBOSE
         vk::PhysicalDeviceProperties device_props;
