@@ -5,7 +5,7 @@
 #include "loop/SimpleLoop.hpp"
 #include "glcv/GLCV.hpp"
 #include "glcv/GraphicsPipeline.hpp"
-#include "glcv/util/vector_util.hpp"
+#include "glcv/util/vector_util.h"
 #include "examples/ExampleConfig.hpp"
 
 #define GLFW_INCLUDE_NONE

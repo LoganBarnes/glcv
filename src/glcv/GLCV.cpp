@@ -4,8 +4,9 @@
 // ////////////////////////////////////////////////////////////
 #include "GLCV.hpp"
 #include "ErrorCheck.hpp"
-#include "glcv/util/vector_util.hpp"
+#include "glcv/util/vector_util.h"
 #include "glcv/detail/VulkanExt.hpp"
+#include "glcv/util/vulkan_util.h"
 #include <stdexcept>
 #include <iostream>
 #include <algorithm>
@@ -78,15 +79,11 @@ void GLCV::init_instance(const std::string &app_name,
                                    .setEnabledLayerCount(static_cast<uint32_t>(layer_names.size()))
                                    .setPpEnabledLayerNames(layer_names.data());
 
-    instance_ = std::shared_ptr<vk::Instance>(new vk::Instance(nullptr), [](auto *p) {
-        if (*p) {
-            p->destroy(nullptr);
-            DEBUG_PRINT("Vulkan instance destroyed");
-        }
+    instance_ = glcv::util::make_shared_vk_object(vk::createInstance(instance_info), [](auto *p) {
+        p->destroy();
+        DEBUG_PRINT("Vulkan instance destroyed");
         delete p;
     });
-
-    GLCV_CHECK(vk::createInstance(&instance_info, nullptr, instance_.get()));
     DEBUG_PRINT("Vulkan instance created");
 }
 
@@ -102,26 +99,19 @@ void GLCV::init_debug_report_callback()
                                 .setPUserData(nullptr);
 
     debug_report_callback_
-        = std::shared_ptr<vk::DebugReportCallbackEXT>(new vk::DebugReportCallbackEXT(nullptr), [instance](auto *p) {
-              if (*p) {
-                  instance.destroy(*p, nullptr);
-                  DEBUG_PRINT("Vulkan debug report callback destroyed");
-              }
+        = glcv::util::make_shared_vk_object(instance.createDebugReportCallbackEXT(debug_info), [instance](auto *p) {
+              instance.destroy(*p);
+              DEBUG_PRINT("Vulkan debug report callback destroyed");
               delete p;
           });
-
-    GLCV_CHECK(instance.createDebugReportCallbackEXT(&debug_info, nullptr, debug_report_callback_.get()));
     DEBUG_PRINT("Vulkan debug report callback created");
 }
 
 void GLCV::init_surface(vk::SurfaceKHR surface)
 {
-    surface_ = nullptr;
-    surface_ = std::shared_ptr<vk::SurfaceKHR>(new vk::SurfaceKHR(surface), [this](auto *p) {
-        if (*p) {
-            instance_->destroy(*p);
-            DEBUG_PRINT("Surface destroyed");
-        }
+    surface_ = glcv::util::make_shared_vk_object(surface, [instance = instance_](auto *p) {
+        instance->destroy(*p);
+        DEBUG_PRINT("Surface destroyed");
         delete p;
     });
     DEBUG_PRINT("Surface set");
@@ -226,15 +216,11 @@ void GLCV::init_device(const std::vector<const char *> &layer_names)
                                  .setPpEnabledLayerNames(layer_names.data())
                                  .setPEnabledFeatures(nullptr);
 
-    device_ = std::shared_ptr<vk::Device>(new vk::Device(nullptr), [](auto *p) {
-        if (*p) {
-            p->destroy();
-            DEBUG_PRINT("Vulkan device destroyed");
-        }
+    device_ = glcv::util::make_shared_vk_object(physical_device_.createDevice(device_info), [](auto *p) {
+        p->destroy();
+        DEBUG_PRINT("Vulkan device destroyed");
         delete p;
     });
-
-    GLCV_CHECK(physical_device_.createDevice(&device_info, nullptr, device_.get()));
     DEBUG_PRINT("Vulkan device created");
 
     graphics_queue_ = device_->getQueue(graphics_family_, 0);
@@ -323,15 +309,12 @@ void GLCV::init_swapchain(uint32_t width, uint32_t height)
                                     .setClipped(VK_TRUE)
                                     .setOldSwapchain(nullptr);
 
-    swapchain_ = std::shared_ptr<vk::SwapchainKHR>(new vk::SwapchainKHR(nullptr), [this](auto *p) {
-        if (*p) {
-            device_->destroy(*p);
-            DEBUG_PRINT("Swapchain destroyed");
-        }
-        delete p;
-    });
-
-    GLCV_CHECK(device().createSwapchainKHR(&swapchain_info, nullptr, swapchain_.get()));
+    swapchain_
+        = glcv::util::make_shared_vk_object(device().createSwapchainKHR(swapchain_info), [device = device_](auto *p) {
+              device->destroy(*p);
+              DEBUG_PRINT("Swapchain destroyed");
+              delete p;
+          });
     DEBUG_PRINT("Swapchain created");
 
     swapchain_images_ = device().getSwapchainImagesKHR(*swapchain_);
@@ -365,15 +348,11 @@ void GLCV::init_swapchain_images()
                                    .setSubresourceRange(subresource_range);
 
         swapchain_image_views_[i]
-            = std::shared_ptr<vk::ImageView>(new vk::ImageView(nullptr), [this](vk::ImageView *p) {
-                  if (*p) {
-                      device_->destroy(*p);
-                      DEBUG_PRINT("ImageView destroyed");
-                  }
+            = glcv::util::make_shared_vk_object(device().createImageView(image_view_info), [device = device_](auto *p) {
+                  device->destroy(*p);
+                  DEBUG_PRINT("ImageView destroyed");
                   delete p;
               });
-
-        GLCV_CHECK(device().createImageView(&image_view_info, nullptr, swapchain_image_views_[i].get()));
         DEBUG_PRINT("ImageView created");
     }
 }

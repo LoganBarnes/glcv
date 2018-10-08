@@ -119,7 +119,7 @@ std::shared_ptr<GLCV> GLCV::create_shared_instance(const std::string &app_name,
         }
     }
 
-    // Cannot use make_shared here becasue GLCV constructor is private
+    // Cannot use make_shared here becasue GLCV constructor is private :(
     return std::shared_ptr<GLCV>(new GLCV(app_name, extension_names, layer_names, use_debug_callback, surface_functor));
 }
 

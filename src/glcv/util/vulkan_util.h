@@ -23,7 +23,7 @@ namespace util {
 
 template<typename T, typename Deleter>
 std::shared_ptr<T> make_shared_vk_object(T obj, Deleter deleter) {
-    return std::shared_ptr<vk::Pipeline>(new T(obj), deleter);
+    return std::shared_ptr<T>(new T(obj), deleter);
 }
 
 } // namespace util

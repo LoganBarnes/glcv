@@ -45,15 +45,12 @@ GraphicsPipeline::GraphicsPipeline(std::shared_ptr<GLCV> glcv,
                                 .setSubpassCount(1)
                                 .setPSubpasses(&subpass);
 
-    render_pass_
-        = std::shared_ptr<vk::RenderPass>(new vk::RenderPass(glcv->device().createRenderPass(render_pass_info)),
-                                          [glcv](vk::RenderPass *p) {
-                                              if (*p) {
-                                                  glcv->device().destroy(*p);
-                                                  DEBUG_PRINT("RenderPass destroyed");
-                                              }
-                                              delete p;
-                                          });
+    render_pass_ = glcv::util::make_shared_vk_object(glcv->device().createRenderPass(render_pass_info),
+                                                     [device = glcv->device()](vk::RenderPass *p) {
+                                                         device.destroy(*p);
+                                                         DEBUG_PRINT("RenderPass destroyed");
+                                                         delete p;
+                                                     });
     DEBUG_PRINT("RenderPass created");
 
     // SHADERS
@@ -68,15 +65,13 @@ GraphicsPipeline::GraphicsPipeline(std::shared_ptr<GLCV> glcv,
                                       .setCodeSize(spirv_data.size())
                                       .setPCode(reinterpret_cast<uint32_t *>(spirv_data.data()));
 
-        shader_modules.emplace_back(new vk::ShaderModule(nullptr), [glcv](vk::ShaderModule *p) {
-            if (*p) {
-                glcv->device().destroy(*p);
-                DEBUG_PRINT("ShaderModule destroyed");
-            }
-            delete p;
-        });
-
-        GLCV_CHECK(glcv->device().createShaderModule(&shader_module_info, nullptr, shader_modules.back().get()));
+        shader_modules.emplace_back(
+            glcv::util::make_shared_vk_object(glcv->device().createShaderModule(shader_module_info),
+                                              [device = glcv->device()](vk::ShaderModule *p) {
+                                                  device.destroy(*p);
+                                                  DEBUG_PRINT("ShaderModule destroyed");
+                                                  delete p;
+                                              }));
         DEBUG_PRINT("ShaderModule created");
 
         shader_stage_info.emplace_back(vk::PipelineShaderStageCreateInfo()
@@ -95,7 +90,7 @@ GraphicsPipeline::GraphicsPipeline(std::shared_ptr<GLCV> glcv,
     // GL_POINTS, GL_LINE_STRIP, GL_TRIANGLES
     auto input_assembly = vk::PipelineInputAssemblyStateCreateInfo()
                               .setTopology(vk::PrimitiveTopology::eTriangleList)
-                              .setPrimitiveRestartEnable(false);
+                              .setPrimitiveRestartEnable(vk::Bool32(false));
 
     auto viewport = vk::Viewport()
                         .setX(0.f)
@@ -158,15 +153,12 @@ GraphicsPipeline::GraphicsPipeline(std::shared_ptr<GLCV> glcv,
                                     .setPushConstantRangeCount(0)
                                     .setPPushConstantRanges(nullptr);
 
-    layout_ = std::shared_ptr<vk::PipelineLayout>(new vk::PipelineLayout(nullptr), [glcv](vk::PipelineLayout *p) {
-        if (*p) {
-            glcv->device().destroy(*p);
-            DEBUG_PRINT("PipelineLayout destroyed");
-        }
-        delete p;
-    });
-
-    *layout_ = glcv->device().createPipelineLayout(pipeline_layout_info);
+    layout_ = glcv::util::make_shared_vk_object(glcv->device().createPipelineLayout(pipeline_layout_info),
+                                                [device = glcv->device()](vk::PipelineLayout *p) {
+                                                    device.destroy(*p);
+                                                    DEBUG_PRINT("PipelineLayout destroyed");
+                                                    delete p;
+                                                });
     DEBUG_PRINT("PipelineLayout created");
 
     // PIPELINE
