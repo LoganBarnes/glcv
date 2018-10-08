@@ -50,6 +50,11 @@ const vk::Device &GLCV::device() const
     return *device_;
 }
 
+const vk::Format &GLCV::image_format() const
+{
+    return surface_format_.format;
+}
+
 void GLCV::init_instance(const std::string &app_name,
                          const std::vector<const char *> &extension_names,
                          const std::vector<const char *> &layer_names)

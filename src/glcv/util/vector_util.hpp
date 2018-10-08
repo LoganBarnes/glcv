@@ -8,6 +8,7 @@
 #include <vector>
 #include <algorithm>
 
+namespace glcv {
 namespace util {
 
 template <typename T>
@@ -47,3 +48,4 @@ bool has_value(const std::vector<T> &vec, const T &value)
 }
 
 } // namespace util
+} // namespace glcv

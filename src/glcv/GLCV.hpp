@@ -29,6 +29,7 @@ public:
     const vk::SurfaceKHR &surface() const;
     const vk::PhysicalDevice &physical_device() const;
     const vk::Device &device() const;
+    const vk::Format &image_format() const;
 
     template <typename SurfaceCreationFunctor = EmptySurfaceFunctor>
     static std::shared_ptr<GLCV> create_shared_instance(const std::string &app_name = "GLCV Application",

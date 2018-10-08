@@ -26,10 +26,10 @@ public:
     WireCube() : examples::SimpleLoop("Wire Cube Example")
     {
 #ifdef VERBOSE
-        util::print_vector("Available extensions:", vk::enumerateInstanceExtensionProperties(), [](auto &ext) {
+        glcv::util::print_vector("Available extensions:", vk::enumerateInstanceExtensionProperties(), [](auto &ext) {
             return ext.extensionName;
         });
-        util::print_vector("Available layers:", vk::enumerateInstanceLayerProperties(), [](auto &layer) {
+        glcv::util::print_vector("Available layers:", vk::enumerateInstanceLayerProperties(), [](auto &layer) {
             return layer.layerName;
         });
 #endif
@@ -50,15 +50,16 @@ public:
             {examples::spirv_path() + "triangle_frag.spv", vk::ShaderStageFlagBits::eFragment},
         };
 
-        auto pipeline = glcv::GraphicsPipeline(glcv_, spirv_files, uw, uh);
-        (void)pipeline; //  until we use this
+        pipeline_ = std::make_shared<glcv::GraphicsPipeline>(glcv_, spirv_files, uw, uh);
 
 #ifdef VERBOSE
         vk::PhysicalDeviceProperties device_props;
-        util::print_vector("\nAvailable devices:", glcv_->instance().enumeratePhysicalDevices(), [&](auto &device) {
-            device.getProperties(&device_props);
-            return device_props.deviceName;
-        });
+        glcv::util::print_vector("\nAvailable devices:",
+                                 glcv_->instance().enumeratePhysicalDevices(),
+                                 [&](auto &device) {
+                                     device.getProperties(&device_props);
+                                     return device_props.deviceName;
+                                 });
 #endif
     }
 
@@ -78,6 +79,7 @@ public:
 private:
     unsigned counter_ = 10000000;
     std::shared_ptr<glcv::GLCV> glcv_;
+    std::shared_ptr<glcv::GraphicsPipeline> pipeline_;
 };
 
 int main()

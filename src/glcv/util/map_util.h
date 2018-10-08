@@ -7,6 +7,7 @@
 #include <unordered_set>
 #include <unordered_map>
 
+namespace glcv {
 namespace util {
 
 template <typename Map, typename T>
@@ -16,3 +17,4 @@ bool has_key(const Map &map, const T &value)
 }
 
 } // namespace util
+} // namespace glcv

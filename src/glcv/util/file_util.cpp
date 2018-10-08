@@ -5,6 +5,7 @@
 #include "glcv/util/file_util.h"
 #include <fstream>
 
+namespace glcv {
 namespace util {
 
 std::vector<char> read_file(const std::string &filename)
@@ -27,3 +28,4 @@ std::vector<char> read_file(const std::string &filename)
 }
 
 } // namespace util
+} // namespace glcv

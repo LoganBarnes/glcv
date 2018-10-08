@@ -7,9 +7,11 @@
 #include <string>
 #include <vector>
 
+namespace glcv {
 namespace util {
 
 std::vector<char>
 read_file(const std::string& filename);
 
 } // namespace util
+} // namespace glcv

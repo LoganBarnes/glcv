@@ -21,6 +21,9 @@ public:
 
 private:
     //    std::shared_ptr<GLCV> glcv_;
+    std::shared_ptr<vk::RenderPass> render_pass_;
+    std::shared_ptr<vk::PipelineLayout> layout_;
+    std::shared_ptr<vk::Pipeline> pipeline_;
 };
 
 } // namespace glcv
